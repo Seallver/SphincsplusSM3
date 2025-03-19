@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "sm3.h": "c",
-        "utils.h": "c"
+        "utils.h": "c",
+        "bit": "c",
+        "array": "c"
     }
 }

@@ -10,7 +10,7 @@
     #error Linking against SM3 with N larger than 32 bytes is not supported
 #endif
 
-#define SPX_SHA256_ADDR_BYTES 22
+#define SPX_SM3_ADDR_BYTES 22
 
 #include <stddef.h>
 #include <stdint.h>

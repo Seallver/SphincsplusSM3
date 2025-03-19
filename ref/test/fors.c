@@ -11,7 +11,6 @@ int main(void)
 {
     /* Make stdout buffer more responsive. */
     setbuf(stdout, NULL);
-
     spx_ctx ctx;
 
     unsigned char pk1[SPX_FORS_PK_BYTES];

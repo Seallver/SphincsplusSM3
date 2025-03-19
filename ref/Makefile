@@ -1,4 +1,4 @@
-PARAMS = sphincs-sha2-128f
+PARAMS = sphincs-SM3-128f
 THASH = simple
 
 CC=/usr/bin/gcc
@@ -10,6 +10,11 @@ HEADERS = params.h address.h randombytes.h merkle.h wots.h wotsx1.h utils.h util
 ifneq (,$(findstring sha2,$(PARAMS)))
 	SOURCES += sha2.c hash_sha2.c thash_sha2_$(THASH).c
 	HEADERS += sha2.h
+endif
+
+ifneq (,$(findstring SM3,$(PARAMS)))
+	SOURCES += SM3.c hash_SM3.c thash_SM3_$(THASH).c
+	HEADERS += SM3.h
 endif
 
 

@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "params.h"
 #include "hash.h"
-#include "sm3.h"
+#include "SM3.h"
 
 
 /* For SHA, there is no immediate reason to initialize at the start,
@@ -22,18 +22,18 @@ void prf_addr(unsigned char *out, const spx_ctx *ctx,
               const uint32_t addr[8])
 {
     uint8_t sm3_state[40];
-    unsigned char buf[SPX_SM356_ADDR_BYTES + SPX_N];
-    unsigned char outbuf[SPX_SM356_OUTPUT_BYTES];
+    unsigned char buf[SPX_SM3_ADDR_BYTES + SPX_N];
+    unsigned char outbuf[SPX_SM3_OUTPUT_BYTES];
 
     /* Retrieve precomputed state containing pub_seed */
     memcpy(sm3_state, ctx->state_seeded, 40 * sizeof(uint8_t));
 
     /* Remainder: ADDR^c ‖ SK.seed */
-    memcpy(buf, addr, SPX_SM356_ADDR_BYTES);
-    memcpy(buf + SPX_SM356_ADDR_BYTES, ctx->sk_seed, SPX_N);
+    memcpy(buf, addr, SPX_SM3_ADDR_BYTES);
+    memcpy(buf + SPX_SM3_ADDR_BYTES, ctx->sk_seed, SPX_N);
 
-    sm356_inc_finalize(outbuf, sm3_state, buf, SPX_SM356_ADDR_BYTES + SPX_N);
-
+    sm3_inc_finalize(outbuf, sm3_state, buf, SPX_SM3_ADDR_BYTES + SPX_N);
+    
     memcpy(out, outbuf, SPX_N);
 }
 
@@ -155,7 +155,7 @@ void hash_message(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
 
     /* By doing this in two steps, we prevent hashing the message twice;
        otherwise each iteration in MGF1 would hash the message again. */
-    mgf1_X(bufp, SPX_DGST_BYTES, seed, 2*SPX_N + SPX_SM3_OUTPUT_BYTES);
+    mgf1_SM3(bufp, SPX_DGST_BYTES, seed, 2*SPX_N + SPX_SM3_OUTPUT_BYTES);
 
     memcpy(digest, bufp, SPX_FORS_MSG_BYTES);
     bufp += SPX_FORS_MSG_BYTES;

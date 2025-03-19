@@ -19,6 +19,13 @@ typedef struct {
 # endif
 #endif
 
+#ifdef SPX_SM3
+    // SM3 state that absorbed pub_seed
+    uint8_t state_seeded[40];
+#endif
+
+
+
 #ifdef SPX_HARAKA
     uint64_t tweaked512_rc64[10][8];
     uint32_t tweaked256_rc32[10][8];
