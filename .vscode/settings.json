@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "sm3.h": "c",
+        "utils.h": "c"
+    }
+}
