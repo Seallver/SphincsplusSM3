@@ -15,7 +15,7 @@
 
 ### 1. 克隆项目
 ```bash
-git clone https://github.com/seallver/SphincsplusSM3.git
+git clone https://github.com/Seallver/SphincsplusSM3.git
 cd SphincsplusSM3/ref
 ```
 ### 2. 编译项目
