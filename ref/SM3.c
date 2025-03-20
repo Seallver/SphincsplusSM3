@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "SM3.h"
 
-// SM3 常量定义
+// SM3 常量IV定义
 static const uint8_t iv_256[32] = {
     0x73, 0x80, 0x16, 0x6F,         //A
     0x49, 0x14, 0xB2, 0xB9,         //B
@@ -81,7 +81,8 @@ static inline uint32_t T(int j) {
     return (j < 16) ? (0x79cc4519) : (0x7a879d8a);
 }
 
-void crypto_hashblocks_sm3 (uint8_t* statebytes,
+//分块哈希
+void crypto_hashblocks_sm3(uint8_t* statebytes,
                             const uint8_t* in, size_t inlen) {
     
     uint32_t state[8];
@@ -273,13 +274,12 @@ void mgf1_SM3(unsigned char* out, unsigned long outlen,
 
     memcpy(inbuf, in, inlen);
 
-    /* While we can fit in at least another full block of SM3 output.. */
     for (i = 0; (i+1)*SPX_SM3_OUTPUT_BYTES <= outlen; i++) {
     u32_to_bytes(inbuf + inlen, i);
     sm3(out, inbuf, inlen + 4);
     out += SPX_SM3_OUTPUT_BYTES;
     }
-    /* Until we cannot anymore, and we fill the remainder. */
+    
     if (outlen > i*SPX_SM3_OUTPUT_BYTES) {
     u32_to_bytes(inbuf + inlen, i);
     sm3(outbuf, inbuf, inlen + 4);
