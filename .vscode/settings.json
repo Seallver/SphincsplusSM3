@@ -3,6 +3,10 @@
         "sm3.h": "c",
         "utils.h": "c",
         "bit": "c",
-        "array": "c"
+        "array": "c",
+        "stddef.h": "c",
+        "numbers": "c",
+        "random": "c",
+        "params.h": "c"
     }
 }

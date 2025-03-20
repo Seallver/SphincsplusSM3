@@ -21,7 +21,7 @@ void thash(unsigned char *out, const unsigned char *in, unsigned int inblocks,
 
     memcpy(buf, ctx->pub_seed, SPX_N);
     memcpy(buf + SPX_N, addr, SPX_SM3_ADDR_BYTES);
-    mgf1_256(bitmask, inblocks * SPX_N, buf, SPX_N + SPX_SM3_ADDR_BYTES);
+    mgf1_SM3(bitmask, inblocks * SPX_N, buf, SPX_N + SPX_SM3_ADDR_BYTES);
 
     /* Retrieve precomputed state containing pub_seed */
     memcpy(sm3_state, ctx->state_seeded, 40 * sizeof(uint8_t));

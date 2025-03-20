@@ -4,21 +4,21 @@
 #define SPX_NAMESPACE(s) SPX_##s
 
 /* Hash output length in bytes. */
-#define SPX_N 24
+#define SPX_N 32
 /* Height of the hypertree. */
-#define SPX_FULL_HEIGHT 63
+#define SPX_FULL_HEIGHT 68
 /* Number of subtree layer. */
-#define SPX_D 7
+#define SPX_D 17
 /* FORS tree dimensions. */
-#define SPX_FORS_HEIGHT 14
-#define SPX_FORS_TREES 17
+#define SPX_FORS_HEIGHT 9
+#define SPX_FORS_TREES 35
 /* Winternitz parameter, */
 #define SPX_WOTS_W 16
 
 /* The hash function is defined by linking a different hash.c file, as opposed
    to setting a #define constant. */
 
-/* This is a SHA2-based parameter set, hence whether we use SHA-256
+/* This is a SM3-based parameter set, hence whether we use SHA-256
  * exclusively or we use both SHA-256 and SHA-512 is controlled by
  * the following #define */
 #define SPX_SHA512 1  /* Use SHA-512 for H and T_l, l >= 2 */
@@ -80,6 +80,6 @@
 #define SPX_PK_BYTES (2 * SPX_N)
 #define SPX_SK_BYTES (2 * SPX_N + SPX_PK_BYTES)
 
-#include "../sha2_offsets.h"
+#include "../SM3_offsets.h"
 
 #endif
