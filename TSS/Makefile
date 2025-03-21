@@ -1,11 +1,12 @@
-PARAMS = sphincs-SM3-256f
-THASH = robust
+PARAMS = sphincs-SM3-128f
+THASH = simple
 
 CC = /usr/bin/gcc
-CFLAGS = -Wall -Wextra -Wpedantic -O3 -std=c99 \
+CFLAGS = -Qn -w -Wall -Wextra -Wpedantic -O3 -std=c99 \
          -Wconversion -Wmissing-prototypes \
          -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) \
-         -Iinclude -Iinclude/hash -Iinclude/signature -Iinclude/params -Iinclude/utils  # 新增头文件路径
+         -pthread -D_GNU_SOURCE \
+         -Iinclude -Iinclude/hash -Iinclude/signature -Iinclude/params -Iinclude/utils \
 
 # 源文件路径重构
 BASE_SRCDIR = src
@@ -17,7 +18,11 @@ SOURCES = $(BASE_SRCDIR)/signature/address.c \
           $(BASE_SRCDIR)/utils/utils.c \
           $(BASE_SRCDIR)/utils/utilsx1.c \
           $(BASE_SRCDIR)/signature/fors.c \
-          $(BASE_SRCDIR)/signature/sign.c
+          $(BASE_SRCDIR)/signature/sign.c \
+          $(BASE_SRCDIR)/signature/TSS_sign.c \
+          $(BASE_SRCDIR)/hash/SM3.c \
+          $(BASE_SRCDIR)/hash/hash_SM3.c \
+          $(BASE_SRCDIR)/hash/thash_SM3_$(THASH).c
 
 HEADERS = include/params/params.h \
           include/signature/address.h \
@@ -29,26 +34,24 @@ HEADERS = include/params/params.h \
           include/utils/utilsx1.h \
           include/signature/fors.h \
           include/api.h \
+          include/TSS_api.h \
           include/hash/hash.h \
           include/hash/thash.h \
-          
+          include/hash/SM3.h \
+          include/hash/SM3_offsets.h
+
+LDLIBS = -lpthread
+
 DET_SOURCES = $(SOURCES:$(BASE_SRCDIR)/randombytes.%=$(BASE_SRCDIR)/rng.%)
 DET_HEADERS = $(HEADERS:include/randombytes.%=include/rng.%)
-
-# SM3相关配置
-ifneq (,$(findstring SM3,$(PARAMS)))
-    SOURCES += $(BASE_SRCDIR)/hash/SM3.c \
-               $(BASE_SRCDIR)/hash/hash_SM3.c \
-               $(BASE_SRCDIR)/hash/thash_SM3_$(THASH).c
-    HEADERS += include/hash/SM3.h \
-               include/hash/SM3_offsets.h
-endif
 
 # 测试目标配置
 TESTS = test/fors \
         test/spx
 
 BENCHMARK = test/benchmark/benchmark
+
+TSS = test/TSS
 
 # 构建规则
 .PHONY: clean test benchmark
@@ -65,8 +68,12 @@ benchmarks: $(BENCHMARK)
 
 benchmark: print_params $(BENCHMARK:=.exec)
 
+tss: $(TSS)
+
+TSS: $(TSS:=.exec)
+
 # 主目标构建
-PQCgenKAT_sign: test/PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
+PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
 	$(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< -lcrypto
 
 # 性能测试构建
@@ -79,13 +86,15 @@ test/benchmark/benchmark: test/benchmark/benchmark.c \
 test/%: test/%.c $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
-# 执行规则保持不变
 test/%.exec: test/%
 	@$<
 
+test/TSS: test/TSS.c $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 clean:
 	-$(RM) $(TESTS)
 	-$(RM) $(BENCHMARK)
+	-$(RM) $(TSS)
 	-$(RM) PQCgenKAT_sign
 	-$(RM) PQCsignKAT_*.rsp
 	-$(RM) PQCsignKAT_*.req

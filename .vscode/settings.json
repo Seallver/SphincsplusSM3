@@ -7,6 +7,28 @@
         "stddef.h": "c",
         "numbers": "c",
         "random": "c",
-        "params.h": "c"
-    }
+        "params.h": "c",
+        "randombytes.h": "c",
+        "stdlib.h": "c",
+        "pthread.h": "c",
+        "api.h": "c",
+        "*.tcc": "c",
+        "tss_api.h": "c",
+        "streambuf": "c",
+        "pthreadtypes.h": "c",
+        "context.h": "c",
+        "hash.h": "c",
+        "thash.h": "c",
+        "wots.h": "c",
+        "address.h": "c",
+        "string.h": "c",
+        "fcntl.h": "c",
+        "stdint.h": "c",
+        "wotsx1.h": "c",
+        "fors.h": "c",
+        "merkle.h": "c",
+        "rng.h": "c"
+    },
+    "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
+    "makefile.makePath": ""
 }
