@@ -8,15 +8,14 @@
 - **SPHINCS+ 实现**：完整实现了 SPHINCS+ 签名算法，包括密钥生成、签名和验证功能。
 - **高效且安全**：代码经过优化，兼顾性能和安全性。
 ## 依赖项
-- **编译器**：GCC 或 Clang（支持 C99 标准）。
-- **构建工具**：Make。
-- **测试工具**：Python 3（用于测试脚本）。
+- **编译器**：GCC
+- **构建工具**：Make
 
 ## 构建与运行
 
 ### 1. 克隆项目
 ```bash
-git clone https://github.com/seallver/SphincsplusSM3.git
+git clone https://github.com/Seallver/SphincsplusSM3.git
 cd SphincsplusSM3/ref
 ```
 ### 2. 编译项目
