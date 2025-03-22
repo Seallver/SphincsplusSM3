@@ -26,6 +26,10 @@
 /* For clarity */
 #define SPX_ADDR_BYTES 32
 
+/* TSS */
+#define NUMBER_OF_THREADS SPX_D + 1 //参与方数目，注意需要加上TTP
+#define THRESHOLD NUMBER_OF_THREADS-1
+
 /* WOTS parameters. */
 #if SPX_WOTS_W == 256
     #define SPX_WOTS_LOGW 8

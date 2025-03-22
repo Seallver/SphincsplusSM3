@@ -28,7 +28,17 @@
         "fors.h": "c",
         "merkle.h": "c",
         "rng.h": "c",
-        "threadsafequeue.h": "c"
+        "threadsafequeue.h": "c",
+        "functional": "c",
+        "cmath": "c",
+        "time.h": "c",
+        "stdio.h": "c",
+        "algorithm": "c",
+        "unistd.h": "c",
+        "vss.h": "c",
+        "string": "c",
+        "string_view": "c",
+        "communication.h": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

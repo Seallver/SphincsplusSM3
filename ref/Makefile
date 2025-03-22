@@ -1,5 +1,5 @@
-PARAMS = sphincs-SM3-256f
-THASH = robust
+PARAMS = sphincs-SM3-128f
+THASH = simple
 
 CC = /usr/bin/gcc
 CFLAGS = -Wall -Wextra -Wpedantic -O3 -std=c99 \

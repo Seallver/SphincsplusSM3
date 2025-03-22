@@ -6,7 +6,7 @@ CFLAGS = -Qn -w -Wall -Wextra -Wpedantic -O3 -std=c99 \
          -Wconversion -Wmissing-prototypes \
          -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) \
          -pthread -D_GNU_SOURCE \
-         -Iinclude -Iinclude/hash -Iinclude/signature -Iinclude/params -Iinclude/utils \
+         -Iinclude -Iinclude/hash -Iinclude/signature -Iinclude/params -Iinclude/utils -Iinclude/thread \
 
 # 源文件路径重构
 BASE_SRCDIR = src
@@ -23,7 +23,9 @@ SOURCES = $(BASE_SRCDIR)/signature/address.c \
           $(BASE_SRCDIR)/hash/SM3.c \
           $(BASE_SRCDIR)/hash/hash_SM3.c \
           $(BASE_SRCDIR)/hash/thash_SM3_$(THASH).c \
-          $(BASE_SRCDIR)/utils/ThreadSafeQueue.c \
+          $(BASE_SRCDIR)/thread/ThreadSafeQueue.c \
+          $(BASE_SRCDIR)/utils/VSS.c \
+          $(BASE_SRCDIR)/thread/communication.c \
 
 HEADERS = include/params/params.h \
           include/signature/address.h \
@@ -40,7 +42,9 @@ HEADERS = include/params/params.h \
           include/hash/thash.h \
           include/hash/SM3.h \
           include/hash/SM3_offsets.h \
-          include/utils/ThreadSafeQueue.h \
+          include/thread/ThreadSafeQueue.h \
+          include/utils/VSS.h \
+          include/thread/communication.h \
 
 LDLIBS = -lpthread
 
@@ -54,6 +58,7 @@ TESTS = test/fors \
 BENCHMARK = test/benchmark/benchmark
 
 TSS = test/TSS
+
 
 # 构建规则
 .PHONY: clean test benchmark
@@ -91,8 +96,10 @@ test/%: test/%.c $(SOURCES) $(HEADERS)
 test/%.exec: test/%
 	@$<
 
+# TSS测试构建
 test/TSS: test/TSS.c $(SOURCES) $(HEADERS)
 	@ $(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
+
 clean:
 	-$(RM) $(TESTS)
 	-$(RM) $(BENCHMARK)

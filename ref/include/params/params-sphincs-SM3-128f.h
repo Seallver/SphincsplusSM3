@@ -35,6 +35,8 @@
     #error SPX_WOTS_W assumed 16 or 256
 #endif
 
+
+
 #define SPX_WOTS_LEN1 (8 * SPX_N / SPX_WOTS_LOGW)
 
 /* SPX_WOTS_LEN2 is floor(log(len_1 * (w - 1)) / log(w)) + 1; we precompute */
