@@ -27,7 +27,8 @@
         "wotsx1.h": "c",
         "fors.h": "c",
         "merkle.h": "c",
-        "rng.h": "c"
+        "rng.h": "c",
+        "threadsafequeue.h": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

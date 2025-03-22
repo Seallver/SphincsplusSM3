@@ -6,10 +6,11 @@
 #include "TSS_api.h"
 #include "params.h"
 #include "randombytes.h"
+#include "ThreadSafeQueue.h"
 
 #define SPX_MLEN 32
-#define NUMBER_OF_THREADS SPX_D -1
-#define THRESHOLD NUMBER_OF_THREADS -1
+#define NUMBER_OF_THREADS SPX_D + 1 - 1 //+1 表示一个线程代表可信第三方节点，令其tid为0
+#define THRESHOLD NUMBER_OF_THREADS + 1 -1 
 
 #define IS_PRINT 0
 
@@ -23,6 +24,7 @@ typedef struct {
     unsigned long long smlen;
     unsigned long long mlen;
     unsigned int tid;
+    ThreadSafeQueue channel;
 
 } thread_ctx;
 
@@ -31,12 +33,13 @@ pthread_barrier_t barrier;
 
 
 //初始化参与方的ctx
-int init_ctx(thread_ctx* ctx, int tid, unsigned char* M) {
+int init_ctx(thread_ctx* ctx, int tid, unsigned char* M, ThreadSafeQueue* channel) {
     ctx->m = malloc(SPX_MLEN);
     memcpy(ctx->m, M, SPX_MLEN);
     ctx->sm = malloc(SPX_BYTES + SPX_MLEN);
     ctx->mout = malloc(SPX_BYTES + SPX_MLEN);
-
+    ctx->tid = tid;
+    ctx->channel = *channel;
 
     if (ctx->m == NULL || ctx->sm == NULL || ctx->mout == NULL) {
         free(ctx->m);
@@ -51,7 +54,6 @@ int init_ctx(thread_ctx* ctx, int tid, unsigned char* M) {
 //线程逻辑
 int thread_logic(thread_ctx* ctx) {
     int ret = 0;
-    ctx->tid = (unsigned int)(pthread_self());
     unsigned int tid = ctx->tid;
 
     printf("Thread %u start\n", tid);
@@ -151,34 +153,55 @@ int thread_logic(thread_ctx* ctx) {
     return 0;
 }
 
+int TTP_logic(thread_ctx* ctx) {
+    
+
+
+
+    return 0;
+}
+
 int main(void)
 {
     //初始化屏障
     pthread_barrier_init(&barrier, NULL, NUMBER_OF_THREADS);
+
     //随机生成明文
     unsigned char* M = malloc(SPX_MLEN);
     randombytes(M, SPX_MLEN);
     
     printf("Threshold Testing (n = %d, t = %d)\n", NUMBER_OF_THREADS, THRESHOLD);
 
-    //声明每个参与方的ctx并初始化
+    //创建信道
+    ThreadSafeQueue channel[NUMBER_OF_THREADS];
+    for (int i = 0;i < NUMBER_OF_THREADS;i++) {
+        ThreadSafeQueue_Init(&channel[i], (unsigned int) i);
+    }
+
+
+
+    //声明每个线程的ctx并初始化
     thread_ctx ctx[NUMBER_OF_THREADS];
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
-        if (init_ctx(&ctx[i], i, M) != 0) {
+        if (init_ctx(&ctx[i], i, M, &channel[i]) != 0) {
             printf("Failed to initialize context\n");
             return -1;
         }
     }
 
-    //声明线程（参与方）
+
+    //声明线程（参与方与可信第三方）
     pthread_t threads[NUMBER_OF_THREADS];
 
     //各参与方开始进行SPHINCS+
-    for (int i = 0;i < NUMBER_OF_THREADS;i++) {
+    for (int i = 1;i < NUMBER_OF_THREADS;i++) {
         pthread_create(&threads[i], NULL, thread_logic , &ctx[i]);
     }
+    //TTP等待分发公钥
+    pthread_create(&threads[0], NULL, TTP_logic , &ctx[0]);
+
     
-    //检查是否成功
+    //检查各个线程工作是否成功
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
         int res = 0;
         pthread_join(threads[i], &res);

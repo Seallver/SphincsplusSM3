@@ -47,7 +47,7 @@ unsigned long long tss_crypto_sign_seedbytes(void)
 
 /*
  * Generates an SPX key pair given a seed of length
- * Format sk: [SK_SEED || SK_PRF || PUB_SEED || root]
+ * Format sk: [partial_SK_SEED || partial_SK_PRF || PUB_SEED || root]
  * Format pk: [PUB_SEED || root]
  */
 int tss_crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
@@ -76,7 +76,7 @@ int tss_crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
 
 /*
  * Generates an SPX key pair.
- * Format sk: [SK_SEED || SK_PRF || PUB_SEED || root]
+ * Format sk: [partial_SK_SEED || partial_SK_PRF || PUB_SEED || root]
  * Format pk: [PUB_SEED || root]
  */
 int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
