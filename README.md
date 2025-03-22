@@ -30,10 +30,14 @@ make test
 ```bash
 make benchmark
 ```
-### 5. 清理构建文件
+### 5. KAT测试
+```bash
+./PQCgenKAT_sign
+```
+### 6. 清理构建文件
 ```bash
 make clean
 ```
-### 6. 更改参数配置与thash结构
+### 7. 更改参数配置与thash结构
 在ref/Makefile中，通过更改PARAMS和THASH实现，更改后需要重新编译
 
