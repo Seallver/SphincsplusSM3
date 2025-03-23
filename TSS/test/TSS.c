@@ -44,9 +44,9 @@ int thread_logic(thread_ctx* ctx) {
     keygen_round_player(ctx, prime, generator);
 
     //到达屏障阻塞，等待其他线程接收完毕
-    printf("Thread %d: finished\n", tid);
     pthread_barrier_wait(&barrier);
-
+    
+    printf("Thread %u end\n", tid);
     return 0;
 }
 
@@ -60,6 +60,7 @@ int TTP_logic(thread_ctx* ctx) {
 
     pthread_barrier_wait(&barrier);
 
+    printf("Thread 0 end\n");
     return 0;
 }
 
@@ -70,8 +71,8 @@ int main(void)
     prime = BN_new();
     generator = BN_new();
     init_crypto_params(prime, generator);
-    printf("prime = %s\n", BN_bn2hex(prime));
-    printf("generator = %s\n", BN_bn2hex(generator));
+    printf("prime = %s\n", BN_bn2dec(prime));
+    printf("generator = %s\n", BN_bn2dec(generator));
 
     //初始化屏障
     pthread_barrier_init(&barrier, NULL, NUMBER_OF_THREADS);
@@ -87,7 +88,6 @@ int main(void)
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
         ThreadSafeQueue_Init(&channel[i], (unsigned int) i);
     }
-
 
     //声明每个线程的ctx并初始化
     thread_ctx ctx[NUMBER_OF_THREADS];
