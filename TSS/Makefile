@@ -7,7 +7,7 @@ INCLUDE_SUBDIRS = hash signature params utils thread crypto
 path = $(addprefix -I, $(INCLUDE_DIR) $(foreach dir, $(INCLUDE_SUBDIRS), $(INCLUDE_DIR)/$(dir)))
 
 CC = /usr/bin/gcc
-CFLAGS = -Qn -w -Wall -Wextra -Wpedantic -O3 -std=c99 \
+CFLAGS = -Qn -w -Wall -Wextra -Wpedantic -g -O3 -std=c99 \
          -Wconversion -Wmissing-prototypes \
          -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) \
          -pthread -D_GNU_SOURCE \
@@ -34,6 +34,8 @@ SOURCES = $(BASE_SRCDIR)/signature/address.c \
           $(BASE_SRCDIR)/hash/thash_SM3_$(THASH).c \
           $(BASE_SRCDIR)/thread/ThreadSafeQueue.c \
           $(BASE_SRCDIR)/thread/communication.c \
+          $(BASE_SRCDIR)/thread/tContext.c \
+          $(BASE_SRCDIR)/thread/round.c \
           $(BASE_SRCDIR)/crypto/VSS.c \
 
 
@@ -52,9 +54,12 @@ HEADERS = include/params/params.h \
           include/hash/SM3_offsets.h \
           include/thread/ThreadSafeQueue.h \
           include/thread/communication.h \
+          include/thread/tContext.h \
+          include/thread/round.h \
           include/crypto/VSS.h \
           include/api.h \
           include/TSS_api.h \
+          
 
 
 LDLIBS += -lpthread -lcrypto
