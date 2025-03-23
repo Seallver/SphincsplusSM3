@@ -77,106 +77,28 @@ int thread_logic(thread_ctx* ctx) {
     // printf("Thread %d: Received p = %llu, g = %llu\n", tid, *p, *g);
 
     //到达屏障阻塞，等待其他线程接收完毕
-    printf("Thread %d: Waiting at barrier\n", tid);
-    int rett = pthread_barrier_wait(&barrier);
-    if (rett == PTHREAD_BARRIER_SERIAL_THREAD) {
-        printf("Thread %d is the serial thread\n", tid);
-    }
-    printf("Thread %d: Passed barrier\n", tid);
+    pthread_barrier_wait(&barrier);
 
-
-    // if (IS_PRINT)
-    //     printf("Generating keypair.. \n");
-    
-    // if (tss_crypto_sign_keypair(pk, sk)) {
-    //     printf("failed!\n");
-    //     return -1;
-    // }
-    // if (IS_PRINT)
-    //     printf("successful.\n");
-    
-
-    // tss_crypto_sign(sm, &smlen, m, SPX_MLEN, sk);
-
-    // if (smlen != SPX_BYTES + SPX_MLEN) {
-    //     printf("  X smlen incorrect [%llu != %u]!\n",
-    //             smlen, SPX_BYTES);
-    //     ret = -1;
-    // }
-    // else {
-    //     if (IS_PRINT)
-    //         printf("    smlen as expected [%llu].\n", smlen);
-    // }
-
-    // /* Test if signature is valid. */
-    // if (tss_crypto_sign_open(mout, &mlen, sm, smlen, pk)) {
-    //     printf("  X verification failed!\n");
-    //     ret = -1;
-    // }
-    // else {
-    //     if (IS_PRINT)
-    //         printf("    verification succeeded.\n");
-    // }
-
-    // /* Test if the correct message was recovered. */
-    // if (mlen != SPX_MLEN) {
-    //     printf("  X mlen incorrect [%llu != %u]!\n", mlen, SPX_MLEN);
-    //     ret = -1;
-    // }
-    // else {
-    //     if (IS_PRINT)
-    //         printf("    mlen as expected [%llu].\n", mlen);
-    // }
-    // if (memcmp(m, mout, SPX_MLEN)) {
-    //     printf("  X output message incorrect!\n");
-    //     ret = -1;
-    // }
-    // else {
-    //     if (IS_PRINT)
-    //         printf("    output message as expected.\n");
-    // }
-
-    // /* Test if signature is valid when validating in-place. */
-    // if (tss_crypto_sign_open(sm, &mlen, sm, smlen, pk)) {
-    //     printf("  X in-place verification failed!\n");
-    //     ret = -1;
-    // }
-    // else {
-    //     if (IS_PRINT)
-    //         printf("    in-place verification succeeded.\n");
-    // }
-
-    // /* Test if flipping bits invalidates the signature (it should). */
-
-    // /* Flip the first bit of the message. Should invalidate. */
-    // sm[smlen - 1] ^= 1;
-    // if (!tss_crypto_sign_open(mout, &mlen, sm, smlen, pk)) {
-    //     printf("  X flipping a bit of m DID NOT invalidate signature!\n");
-    //     ret = -1;
-    // }
-    // else {
-    //     if (IS_PRINT)
-    //         printf("    flipping a bit of m invalidates signature.\n");
-    // }
-    // sm[smlen - 1] ^= 1;
+    //初始化VSS上下文
+    VSS_ctx vss_ctx;
+    VSS_init(&vss_ctx, *p, *g);
+    printf("Thread %d: VSS initialized\n", tid);
 
     return 0;
 }
 
 int TTP_logic(thread_ctx* ctx) {
-    uint64_t p,  g;
-    init_crypto_params(&p, &g);
-    printf("TTP: p = %llu, g = %llu\n", p, g);
-    Send_Msg(ctx->public_channel_list, 0, -1, &p);
-    Send_Msg(ctx->public_channel_list, 0, -1, &g);
-
+    BIGNUM* p = BN_new();
+    BIGNUM* g = BN_new();
+    init_crypto_params(p, g);
+    printf("TTP: p = %s\n", BN_bn2dec(p));
+    printf("TTP: g = %s\n", BN_bn2dec(g));
+    void* ptrp = (void*)p;
+    void* ptrg = (void*)g;
+    Send_Msg(ctx->public_channel_list, 0, -1, ptrp);
+    Send_Msg(ctx->public_channel_list, 0, -1, ptrg);
     //到达屏障阻塞，等待其他线程接收完毕
-    printf("Thread 0: Waiting at barrier\n");
-    int rett = pthread_barrier_wait(&barrier);
-    if (rett == PTHREAD_BARRIER_SERIAL_THREAD) {
-        printf("Thread 0 is the serial thread\n");
-    }
-    printf("Thread 0: Passed barrier\n");
+    pthread_barrier_wait(&barrier);
 
     return 0;
 }

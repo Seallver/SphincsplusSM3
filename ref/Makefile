@@ -1,4 +1,4 @@
-PARAMS = sphincs-SM3-128f
+PARAMS = sphincs-SM3-test
 THASH = simple
 
 CC = /usr/bin/gcc

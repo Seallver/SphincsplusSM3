@@ -38,7 +38,8 @@
         "vss.h": "c",
         "string": "c",
         "string_view": "c",
-        "communication.h": "c"
+        "communication.h": "c",
+        "bn.h": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""
