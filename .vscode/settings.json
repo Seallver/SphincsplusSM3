@@ -41,7 +41,11 @@
         "communication.h": "c",
         "bn.h": "c",
         "round.h": "c",
-        "tcontext.h": "c"
+        "tcontext.h": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "logic.h": "c",
+        "globals.h": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

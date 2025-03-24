@@ -36,10 +36,12 @@ SOURCES = $(BASE_SRCDIR)/signature/address.c \
           $(BASE_SRCDIR)/thread/communication.c \
           $(BASE_SRCDIR)/thread/tContext.c \
           $(BASE_SRCDIR)/thread/round.c \
+          $(BASE_SRCDIR)/thread/logic.c \
           $(BASE_SRCDIR)/crypto/VSS.c \
 
 
 HEADERS = include/params/params.h \
+          include/params/globals.h \
           include/signature/address.h \
           include/signature/fors.h \
           include/signature/merkle.h \
@@ -56,6 +58,7 @@ HEADERS = include/params/params.h \
           include/thread/communication.h \
           include/thread/tContext.h \
           include/thread/round.h \
+          include/thread/logic.h \
           include/crypto/VSS.h \
           include/api.h \
           include/TSS_api.h \

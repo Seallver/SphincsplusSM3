@@ -9,7 +9,8 @@
 typedef struct{
     int from;            // 数据来源
     int to;              // 数据目的
-    void* data;          // 数据指针
+    unsigned char* data;          // 数据指针
+    size_t data_len;
     struct Msg* next;   // 指向下一个节点
 } Msg;
 

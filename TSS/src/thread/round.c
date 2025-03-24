@@ -1,54 +1,69 @@
 #include "round.h"
 
-void keygen_round_ttp(thread_ctx* thread_ctx, BIGNUM* prime, BIGNUM* generator) {
-
+void keygen_round_ttp(thread_ctx* thread_ctx) {
     //声明并初始化VSS参数
     TTP_VSS_ctx* vss_ctx = (TTP_VSS_ctx*)malloc(sizeof(TTP_VSS_ctx));
-    thread_ctx->vss_ctx = vss_ctx;
-    TTP_VSS_init(vss_ctx, prime, generator);
-
+    TTP_VSS_init(vss_ctx, thread_ctx->p, thread_ctx->g);
+    thread_ctx->ttp_vss_ctx = vss_ctx;
+    thread_ctx->vss_ctx = NULL;
+    
     //p2p发送shares
-    for (int i = 1; i <= PLAYERS; i++) {
-        void* sptr = (void*)(vss_ctx->shares[i]);
-        Send_Msg(thread_ctx->public_channel_list, 0, i, sptr);
-    }
+    p2p_shares(vss_ctx, thread_ctx->public_channel_list);
 
     //广播comms
-    for (int i = 0;i < vss_ctx->degree + 1;i++) {
-        void* cptr = (void*)(vss_ctx->comms[i]);
-        Send_Msg(thread_ctx->public_channel_list, 0, -1, cptr);
+    bc_comms(vss_ctx, thread_ctx->public_channel_list);
+
+    //生成公钥
+    unsigned char* seed = (unsigned char*)malloc(BN_num_bytes(vss_ctx->secret));
+    int len = BN_bn2bin(vss_ctx->secret, seed);
+    if (len <= 0) {
+        fprintf(stderr, "Error: Failed to gen seed\n");
     }
-    
+    tss_crypto_sign_keypair(thread_ctx->pk, thread_ctx->sk, seed);
+
+    //广播公钥
+    bc_pk(thread_ctx);
+
+
 }
 
-void keygen_round_player(thread_ctx* thread_ctx, BIGNUM* prime, BIGNUM* generator) {
+void keygen_round_player(thread_ctx* thread_ctx) {
     //声明并初始化VSS参数
     VSS_ctx* vss_ctx = (VSS_ctx*)malloc(sizeof(VSS_ctx));
+    VSS_init(vss_ctx, thread_ctx->p, thread_ctx->g);
     thread_ctx->vss_ctx = vss_ctx;
-    VSS_init(vss_ctx, prime, generator);
+    thread_ctx->ttp_vss_ctx = NULL;
+    
 
     int* pid = (int*)malloc(sizeof(int));
+
     //从TTP接收shares
-    void* smsg ;
-    Recv_Msg(thread_ctx->self_channel, pid, &smsg);
-    BN_copy(vss_ctx->share, (BIGNUM*)smsg);
+    recv_shares(thread_ctx);
+
 
     //从TTP接收comms
-    for (int i = 0; i < THRESHOLD; i++) {
-        void* recv;
-        Recv_Msg(thread_ctx->self_channel, pid, &recv);
-        vss_ctx->comms[i] = BN_new();
-        BN_copy(vss_ctx->comms[i], (BIGNUM*)recv);
-    }
+    recv_comms(thread_ctx);
 
-    //验证承诺
-    BIGNUM *x = BN_new();
-    BN_set_word(x, (unsigned long)(thread_ctx->tid));
-    int ret = verify_share(vss_ctx->share, x, vss_ctx->comms, THRESHOLD - 1, vss_ctx->p, vss_ctx->g);
-    if (ret == 0) {
-        printf("verify_share failed\n");
-        exit(1);
-    }
+    //接收公钥
+    recv_pk(thread_ctx);
+
+    // //验证承诺
+    // BIGNUM *x = BN_new();
+    // BN_set_word(x, (unsigned long)(thread_ctx->tid));
+    // int ret = verify_share(vss_ctx->share, x, vss_ctx->comms, THRESHOLD - 1, vss_ctx->p, vss_ctx->g);
+    // if (ret == 0) {
+    //     printf("verify_share failed\n");
+    //     exit(1);
+    // }
+    // else {
+    //     if (IS_PRINT)
+    //         printf("verify_share success\n");
+    // }
 
     free(pid);
+}
+
+
+void presign_round(thread_ctx* ctx) {
+    
 }

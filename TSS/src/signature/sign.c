@@ -82,9 +82,9 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
  */
 int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
-  unsigned char seed[CRYPTO_SEEDBYTES];
-  randombytes(seed, CRYPTO_SEEDBYTES);
-  crypto_sign_seed_keypair(pk, sk, seed);
+    unsigned char seed[CRYPTO_SEEDBYTES];
+    randombytes(seed, CRYPTO_SEEDBYTES);
+    crypto_sign_seed_keypair(pk, sk, seed);
 
   return 0;
 }

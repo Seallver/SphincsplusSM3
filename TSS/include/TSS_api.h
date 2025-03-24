@@ -46,7 +46,7 @@ int tss_crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
  * Format sk: [SK_SEED || SK_PRF || PUB_SEED || root]
  * Format pk: [root || PUB_SEED]
  */
-int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk);
+int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk, const unsigned char *seed);
 
 /**
  * Returns an array containing a detached signature.

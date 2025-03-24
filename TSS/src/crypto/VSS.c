@@ -65,7 +65,6 @@ void TTP_VSS_init(TTP_VSS_ctx* ctx, BIGNUM* P, BIGNUM* G) {
 
 
 void generate_secret(BIGNUM* secret, BIGNUM* p) {
-    int bits = SPX_N * 8;
     // 生成随机数
     if (!BN_rand_range(secret, p)) {
         fprintf(stderr, "Failed to generate random number\n");
@@ -115,7 +114,7 @@ void init_crypto_params(BIGNUM* PRIME, BIGNUM* GENERATOR) {
     BIGNUM *g = BN_new();
     
     // 生成安全素数
-    BN_generate_prime_ex(p, MIN_PRIME_BITS, 0, NULL, NULL, NULL);
+    BN_generate_prime_ex(p, MIN_PRIME_BITS, 1, NULL, NULL, NULL);
     
     // 寻找原根
     g = find_primitive_root(p, ctx);

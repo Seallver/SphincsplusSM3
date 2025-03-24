@@ -79,12 +79,9 @@ int tss_crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
  * Format sk: [partial_SK_SEED || partial_SK_PRF || PUB_SEED || root]
  * Format pk: [PUB_SEED || root]
  */
-int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
+int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk, const unsigned char *seed)
 {
-    unsigned char seed[CRYPTO_SEEDBYTES];
-    randombytes(seed, CRYPTO_SEEDBYTES);
     tss_crypto_sign_seed_keypair(pk, sk, seed);
-
     return 0;
 }
 

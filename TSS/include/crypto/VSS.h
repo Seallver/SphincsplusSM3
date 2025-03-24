@@ -6,10 +6,11 @@
 #include <stdbool.h>
 #include <openssl/bn.h>
 #include "params.h"
+#include "TSS_api.h"
 
 
 // 质数相关参数
-#define MIN_PRIME_BITS SPX_N * 8   // 最小质数位数
+#define MIN_PRIME_BITS CRYPTO_SEEDBYTES * 8   // 最小质数位数
 #define MR_TEST_ROUNDS 5    // Miller-Rabin测试轮数
 
 

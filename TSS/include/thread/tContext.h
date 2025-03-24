@@ -8,21 +8,30 @@
  
 
 typedef struct {
+    BIGNUM* p;
+    BIGNUM* g;
+    
     unsigned char pk[SPX_PK_BYTES];
     unsigned char sk[SPX_SK_BYTES];
-    unsigned char *m;
-    unsigned char *sm;
+
+    unsigned char* m;
+    unsigned char* sm;
     unsigned char *mout;
     unsigned long long smlen;
     unsigned long long mlen;
+
     unsigned int tid;
-    ThreadSafeQueue *self_channel;
+
+    ThreadSafeQueue* self_channel;
     ThreadSafeQueue* public_channel_list;
-    VSS_ctx *vss_ctx;
-    
+
+    VSS_ctx* vss_ctx;  //for player
+    TTP_VSS_ctx* ttp_vss_ctx; // for TTP
+
+
 } thread_ctx;
 
 //初始化线程上下文
-int init_ctx(thread_ctx* ctx, int tid, unsigned char* M, ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list);
+int init_ctx(thread_ctx* ctx, int tid, unsigned char* M, ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list, BIGNUM* p, BIGNUM* g);
 
 #endif
