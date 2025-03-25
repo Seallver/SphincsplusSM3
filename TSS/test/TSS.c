@@ -49,10 +49,11 @@ int main(void)
     //声明线程（参与方与可信第三方）
     pthread_t threads[NUMBER_OF_THREADS];
 
+    printf("KEYGEN: start...\n");
     //TTP开始keygen
     pthread_create(&threads[0], NULL, keygen_TTP_logic , &ctx[0]);
 
-    //全部参与方开始keygen
+    //参与方开始keygen
     for (int i = 1;i < NUMBER_OF_THREADS;i++) {
         pthread_create(&threads[i], NULL, keygen_player_logic , &ctx[i]);
     }
@@ -66,4 +67,44 @@ int main(void)
             return -1;
         }
     }
+
+    printf("KEYGEN: successful\n");
+
+    pthread_barrier_destroy(&barrier);
+    pthread_barrier_init(&barrier, NULL, THRESHOLD);
+
+    printf("SIGN: start...\n");
+
+    srand(time(NULL));
+    int threshold[PLAYERS];
+    for (int i = 0;i < PLAYERS;i++) {
+        threshold[i] = i + 1;
+    }
+    // Fisher-Yates洗牌算法，将参与方乱序
+    // for (int i = PLAYERS - 1; i > 0; --i) {
+    //     int j = rand() % (i + 1); 
+    //     int temp = threshold[i];
+    //     threshold[i] = threshold[j];
+    //     threshold[j] = temp;
+    // }
+    
+    //从乱序的参与方中选前t个作为门限方
+    for (int i = 0;i < THRESHOLD;i++) {
+        int tid = threshold[i];
+        pthread_create(&threads[tid], NULL, sign_logic, &ctx[tid]);
+    }
+
+    //签名结束查看各个线程是否成功运行
+    for (int i = 0;i < THRESHOLD;i++) {
+        int res = 0;
+        int tid = threshold[i];
+        pthread_join(threads[tid], &res);
+        if (res) {
+            printf("Thread %d Failed to signature\n", i);
+            return -1;
+        }
+    }
+
+    printf("SIGN: successful\n");
+
 }

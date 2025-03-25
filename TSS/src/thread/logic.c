@@ -1,5 +1,5 @@
 #include "logic.h"
-#include "globals.h"
+
 
 //kg参与方线程逻辑
 int keygen_player_logic(thread_ctx* ctx) {
@@ -21,8 +21,6 @@ int keygen_player_logic(thread_ctx* ctx) {
 
     //到达屏障阻塞，等待其他线程接收完毕
     pthread_barrier_wait(&barrier);
-
-    presign_round(ctx);
     
     printf("Keygen: Thread %u end\n", tid);
     return 0;
@@ -38,7 +36,7 @@ int keygen_TTP_logic(thread_ctx* ctx) {
     return 0;
 }
 
-int presign_logic(thread_ctx* ctx) {
+int sign_logic(thread_ctx* ctx) {
     unsigned int tid = ctx->tid;
     printf("Sign: Thread %u start\n", tid);
 

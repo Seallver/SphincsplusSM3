@@ -6,7 +6,7 @@ void VSS_init(VSS_ctx* ctx, BIGNUM* p, BIGNUM* g) {
     ctx->p = BN_new();
     ctx->g = BN_new();
     ctx->share = BN_new();
-    ctx->comms = (BIGNUM**)malloc(THRESHOLD * sizeof(BIGNUM*));
+    ctx->comms = (BIGNUM**)malloc((THRESHOLD) * sizeof(BIGNUM*));
     for (int i = 0; i < THRESHOLD; i++) {
         ctx->comms[i] = BN_new();
         BN_zero(ctx->comms[i]);

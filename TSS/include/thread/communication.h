@@ -3,22 +3,28 @@
 #include "tContext.h"
 
 // TTP发送shares
-void p2p_shares(TTP_VSS_ctx* vss_ctx, ThreadSafeQueue * channel);
+void p2p_shares(thread_ctx* thread_ctx);
 
 // TTP广播comms
-void bc_comms(TTP_VSS_ctx* vss_ctx, ThreadSafeQueue* channel);
+void keygen_bc_comms(thread_ctx* thread_ctx);
 
 // TTP广播pk
-void bc_pk(thread_ctx* thread_ctx);
+void keygen_bc_pk(thread_ctx* thread_ctx);
 
 //参与方接收shares
-void recv_shares(thread_ctx* thread_ctx);
+void keygen_recv_shares(thread_ctx* thread_ctx);
 
 //参与方接收comms
-void recv_comms(thread_ctx* thread_ctx);
+void keygen_recv_comms(thread_ctx* thread_ctx);
 
 //参与方接收pk
-void recv_pk(thread_ctx* thread_ctx);
+void keygen_recv_pk(thread_ctx* thread_ctx);
+
+//参与方广播自己的shares
+void sign_bc_shares(thread_ctx* thread_ctx);
+
+//参与方接收其他参与方的shares
+void sign_recv_shares(thread_ctx* thread_ctx, BIGNUM** shares);
 
 // 发送消息(小于0的时候认为是广播)
 void Send_Msg(ThreadSafeQueue* queue, int from, int to, const unsigned char* data, size_t data_len);

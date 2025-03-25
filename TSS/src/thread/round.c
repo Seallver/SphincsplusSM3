@@ -1,4 +1,8 @@
 #include "round.h"
+#include "globals.h"
+
+//互斥锁
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void keygen_round_ttp(thread_ctx* thread_ctx) {
     //声明并初始化VSS参数
@@ -8,10 +12,10 @@ void keygen_round_ttp(thread_ctx* thread_ctx) {
     thread_ctx->vss_ctx = NULL;
     
     //p2p发送shares
-    p2p_shares(vss_ctx, thread_ctx->public_channel_list);
+    keygen_p2p_shares(thread_ctx);
 
     //广播comms
-    bc_comms(vss_ctx, thread_ctx->public_channel_list);
+    keygen_bc_comms(thread_ctx);
 
     //生成公钥
     unsigned char* seed = (unsigned char*)malloc(BN_num_bytes(vss_ctx->secret));
@@ -22,7 +26,7 @@ void keygen_round_ttp(thread_ctx* thread_ctx) {
     tss_crypto_sign_keypair(thread_ctx->pk, thread_ctx->sk, seed);
 
     //广播公钥
-    bc_pk(thread_ctx);
+    keygen_bc_pk(thread_ctx);
 
 
 }
@@ -38,14 +42,14 @@ void keygen_round_player(thread_ctx* thread_ctx) {
     int* pid = (int*)malloc(sizeof(int));
 
     //从TTP接收shares
-    recv_shares(thread_ctx);
+    keygen_recv_shares(thread_ctx);
 
 
     //从TTP接收comms
-    recv_comms(thread_ctx);
+    keygen_recv_comms(thread_ctx);
 
     //接收公钥
-    recv_pk(thread_ctx);
+    keygen_recv_pk(thread_ctx);
 
     // //验证承诺
     // BIGNUM *x = BN_new();
@@ -65,5 +69,33 @@ void keygen_round_player(thread_ctx* thread_ctx) {
 
 
 void presign_round(thread_ctx* ctx) {
-    
+    //分享自己的秘密份额
+    sign_bc_shares(ctx);
+
+    BIGNUM** tmp_shares = (BIGNUM**)malloc((PLAYERS + 1) * sizeof(BIGNUM*));
+    for(int i = 0; i <= PLAYERS; i++) {
+        tmp_shares[i] = BN_new();
+        BN_zero(tmp_shares[i]);
+    }
+    BN_copy(tmp_shares[ctx->tid], ctx->vss_ctx->share);
+    for (int i = 0; i < THRESHOLD - 1; i++) {
+        //接收其他参与方的秘密份额
+        sign_recv_shares(ctx, tmp_shares);
+    }
+
+    // //输出各接收方收到的秘密份额
+    // pthread_mutex_lock(&mutex);
+    // printf("tid: %d\n", ctx->tid);
+    // for (int i = 0; i <= PLAYERS; i++) {
+    //     printf("sign_shares[%d] = %s\n", i, BN_bn2dec(tmp_shares[i]));
+    // }
+    // pthread_mutex_unlock(&mutex);
+
+
+
+    for (int i = 0; i <= PLAYERS; i++) {
+        BN_free(tmp_shares[i]);
+    }
+
+
 }
