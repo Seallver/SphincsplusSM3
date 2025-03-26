@@ -12,155 +12,103 @@ Msg* Pack_Msg(int from, int to, void* data, size_t data_len) {
     return msg;
 }
 
-//TTP发送shares
-void keygen_p2p_shares(thread_ctx* thread_ctx) {
-    for (int i = 1; i <= PLAYERS; i++) {
-        BIGNUM* share = thread_ctx->ttp_vss_ctx->shares[i]; // 获取 shares[i]
-        if (!share) {
-            fprintf(stderr, "Error: shares[%d] is NULL\n", i);
-            continue;
-        }
-
-        // 将 BIGNUM 序列化为字节数组
-        size_t data_len = BN_num_bytes(share); // 计算 BIGNUM 的字节长度
-        unsigned char* data = (unsigned char*)malloc(data_len); // 分配内存
-        if (!data) {
-            fprintf(stderr, "Error: Failed to allocate memory for data\n");
-            continue;
-        }
-
-        // 将 BIGNUM 转换为字节数组
-        int len = BN_bn2bin(share, data); // 返回实际写入的字节数
-        if (len <= 0) {
-            fprintf(stderr, "Error: Failed to serialize BIGNUM\n");
-            free(data);
-            continue;
-        }
-
-        // 发送数据
-        Send_Msg(thread_ctx->public_channel_list, 0, i, data, data_len);
-
-        // 释放内存
-        free(data);
-    }
-}
-
-//TTP广播comms
-void keygen_bc_comms(thread_ctx* thread_ctx) {
-    for (int i = 0;i < thread_ctx->ttp_vss_ctx->degree + 1;i++) {
-        BIGNUM* comms =  thread_ctx->ttp_vss_ctx->comms[i];
-        if (!comms) {
-            fprintf(stderr, "Error: comms[%d] is NULL\n", i);
-            continue;
-        }
-
-        size_t data_len = BN_num_bytes(comms);
+void keygen_player_p2p_shares(thread_ctx* thread_ctx, BIGNUM** shares) {
+    int from = thread_ctx->tid;
+    int to;
+    for (int i = 1;i <= PLAYERS;i++) {
+        BIGNUM* share = shares[i];
+        to = i;
+        
+        size_t data_len = BN_num_bytes(share);
         unsigned char* data = (unsigned char*)malloc(data_len);
-        if (!data) {
-            fprintf(stderr, "Error: Failed to allocate memory for data\n");
-            continue;
-        }
+        int len = BN_bn2bin(share, data);
 
-        int len = BN_bn2bin(comms, data); // 返回实际写入的字节数
-        if (len <= 0) {
-            fprintf(stderr, "Error: Failed to serialize BIGNUM\n");
-            free(data);
-            continue;
-        }
-
-        Send_Msg(thread_ctx->public_channel_list, 0, -1, data, data_len);
+        Send_Msg(thread_ctx->public_channel_list, from, to, data, data_len);
     }
 }
 
-//TTP广播pk
-void keygen_bc_pk(thread_ctx* thread_ctx) {
-    unsigned char pk[SPX_PK_BYTES];
-    memcpy(pk, thread_ctx->pk, SPX_PK_BYTES);
-    Send_Msg(thread_ctx->public_channel_list, 0, -1, &pk, SPX_PK_BYTES);
-}
-
-//参与方接收shares
-void keygen_recv_shares(thread_ctx* thread_ctx) {
-    Msg* shares = (Msg*)malloc(sizeof(Msg));
-    Recv_Msg(thread_ctx->self_channel, shares);
-    unsigned char* data = shares->data;
-    size_t data_len = shares->data_len;
-    BIGNUM* bn = BN_new();
-    // 将字节数组转换为 BIGNUM
-    if (!BN_bin2bn(data, data_len, bn)) {
-        fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
-        BN_free(bn); // 释放 BIGNUM
-        return NULL;
-    }
-    BN_copy(thread_ctx->vss_ctx->share, bn);
-}
-
-//参与方接收comms
-void keygen_recv_comms(thread_ctx* thread_ctx) {
-    Msg* comms = (Msg*)malloc(sizeof(Msg));
-    size_t data_len;
-    for (int i = 0; i < THRESHOLD; i++) {
-        Recv_Msg(thread_ctx->self_channel, comms);
-        data_len = comms->data_len;
-        unsigned char* data = comms->data;
-        BIGNUM* bn = BN_new();
-        if (!BN_bin2bn(data, data_len, bn)) {
+void keygen_player_recv_shares(thread_ctx* thread_ctx) {
+    BIGNUM** share_shards = (BIGNUM**)malloc(sizeof(BIGNUM*) * PLAYERS);
+    for (int i = 0; i < PLAYERS;i++) {
+        Msg* shards = (Msg*)malloc(sizeof(Msg));
+        share_shards[i] = BN_new();
+        Recv_Msg(thread_ctx->self_channel, shards);
+        unsigned char* data = shards->data;
+        size_t data_len = shards->data_len;
+        // 将字节数组转换为 BIGNUM
+        if (!BN_bin2bn(data, data_len, share_shards[i])) {
             fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
-            BN_free(bn); // 释放 BIGNUM
+            BN_free(data); // 释放 BIGNUM
             return NULL;
         }
-        thread_ctx->vss_ctx->comms[i] = BN_new();
-        BN_copy(thread_ctx->vss_ctx->comms[i], bn);
     }
+    aggregate_shares(thread_ctx->vss_ctx->share, share_shards);
 }
 
-//参与方接收pk
+void keygen_player_p2ttp_shards(thread_ctx* thread_ctx, BIGNUM* shards) {
+    int from = thread_ctx->tid;
+    int to = 0;
+    size_t data_len = BN_num_bytes(shards);
+    unsigned char* data = (unsigned char*)malloc(data_len);
+    int len = BN_bn2bin(shards, data);
+    Send_Msg(thread_ctx->public_channel_list, from, to, data, data_len);
+}
+
+void keygen_ttp_recv_shards(thread_ctx* thread_ctx, BIGNUM* sk) {
+    BIGNUM** shards = (BIGNUM**)malloc(sizeof(BIGNUM*) * PLAYERS);
+    for (int i = 0;i < PLAYERS;i++) {
+        Msg* shards_msg = (Msg*)malloc(sizeof(Msg));
+        Recv_Msg(thread_ctx->self_channel, shards_msg);
+        unsigned char* data = shards_msg->data;
+        size_t data_len = shards_msg->data_len;
+        // 将字节数组转换为 BIGNUM
+        shards[i] = BN_new();
+        if (!BN_bin2bn(data, data_len, shards[i])) {
+            fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
+            BN_free(data); // 释放 BIGNUM
+            return NULL;
+        }
+    }
+    recover_secret(sk, shards, PLAYERS);
+}
+
+void keygen_ttp_bc_pk(thread_ctx* thread_ctx, const unsigned char* pk) {
+    unsigned char PK[SPX_PK_BYTES];
+    memcpy(PK, pk, SPX_PK_BYTES);
+    Send_Msg(thread_ctx->public_channel_list, 0, -1, &PK, SPX_PK_BYTES);
+}
+
 void keygen_recv_pk(thread_ctx* thread_ctx) {
     Msg* PK = (Msg*)malloc(sizeof(Msg));
     Recv_Msg(thread_ctx->self_channel, PK);
     unsigned char* data = PK->data;
     size_t data_len = PK->data_len;
-    memcpy(thread_ctx->pk, data, SPX_PK_BYTES);
-
+    memcpy(thread_ctx->pk, data, data_len);
 }
 
-//门限参与方广播自己的shares
-void sign_bc_shares(thread_ctx* thread_ctx) {
-    BIGNUM* shares =  thread_ctx->vss_ctx->share;
-    if (!shares) {
-        fprintf(stderr, "Error: shares[%d] is NULL\n", thread_ctx->tid);
-    }
-
-    size_t data_len = BN_num_bytes(shares);
+void presign_player_p2ttp_shards(thread_ctx* ctx) {
+    size_t data_len = BN_num_bytes(ctx->vss_ctx->share);
     unsigned char* data = (unsigned char*)malloc(data_len);
-    if (!data) {
-        fprintf(stderr, "Error: Failed to allocate memory for data\n");
-    }
-
-    int len = BN_bn2bin(shares, data); // 返回实际写入的字节数
-    if (len <= 0) {
-        fprintf(stderr, "Error: Failed to serialize BIGNUM\n");
-        free(data);
-    }
-
-    Send_Msg(thread_ctx->public_channel_list, thread_ctx->tid, -1, data, data_len);
+    int len = BN_bn2bin(ctx->vss_ctx->share, data);
+    Send_Msg(ctx->public_channel_list, ctx->tid, 0, data, data_len);
 }
 
-//参与方接收其他参与方的shares
-void sign_recv_shares(thread_ctx* thread_ctx, BIGNUM** shares) {
-    Msg* msg = (Msg*)malloc(sizeof(Msg));
-    Recv_Msg(thread_ctx->self_channel, msg);
-    unsigned char* data = msg->data;
-    size_t data_len = msg->data_len;
-    int tid = msg->from;
-    BIGNUM* bn = BN_new();
-    if (!BN_bin2bn(data, data_len, bn)) {
-        fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
-        BN_free(bn); // 释放 BIGNUM
-        return NULL;
+void presign_ttp_recv_shards(thread_ctx* thread_ctx, BIGNUM* sk) {
+    BIGNUM** shards = (BIGNUM**)malloc(sizeof(BIGNUM*) * THRESHOLD);
+    for (int i = 0;i < THRESHOLD;i++) {
+        Msg* shards_msg = (Msg*)malloc(sizeof(Msg));
+        Recv_Msg(thread_ctx->self_channel, shards_msg);
+        unsigned char* data = shards_msg->data;
+        size_t data_len = shards_msg->data_len;
+        // 将字节数组转换为 BIGNUM
+        shards[i] = BN_new();
+        if (!BN_bin2bn(data, data_len, shards[i])) {
+            fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
+            BN_free(data); // 释放 BIGNUM
+            return NULL;
+        }
     }
-    shares[tid] = BN_new();
-    BN_copy(shares[tid], bn);
+    recover_secret(sk, shards, THRESHOLD);
 }
 
 

@@ -6,16 +6,6 @@ int keygen_player_logic(thread_ctx* ctx) {
     unsigned int tid = ctx->tid;
 
     printf("Keygen: Thread %u start\n", tid);
-    /* Make stdout buffer more responsive. */
-    setbuf(stdout, NULL);
-    
-    unsigned char *pk = &(ctx->pk);
-    unsigned char *sk = &(ctx->sk);
-    unsigned char *m = ctx->m;
-    unsigned char *sm = ctx->sm;
-    unsigned char *mout = ctx->mout;
-    unsigned long long smlen;
-    unsigned long long mlen;
 
     keygen_round_player(ctx);
 
@@ -36,12 +26,20 @@ int keygen_TTP_logic(thread_ctx* ctx) {
     return 0;
 }
 
-int sign_logic(thread_ctx* ctx) {
+int sign_player_logic(thread_ctx* ctx) {
     unsigned int tid = ctx->tid;
     printf("Sign: Thread %u start\n", tid);
 
-    presign_round(ctx);
+    presign_round_player(ctx);
 
     printf("Sign: Thread %u end\n", tid);
     return 0;
+}
+
+int sign_TTP_logic(thread_ctx* ctx) {
+    printf("Sign: Thread 0 start (TTP)\n");
+
+    presign_round_ttp(ctx);
+
+    printf("Sign: Thread 0 end (TTP)\n");
 }

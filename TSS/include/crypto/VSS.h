@@ -4,64 +4,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <openssl/bn.h>
-#include "params.h"
 #include "TSS_api.h"
+#include "globals.h"
 
 
 // 质数相关参数
 #define MIN_PRIME_BITS CRYPTO_SEEDBYTES * 8   // 最小质数位数
-#define MR_TEST_ROUNDS 5    // Miller-Rabin测试轮数
-
+#define DEGREE THRESHOLD - 1
 
 typedef struct
 {
-    BIGNUM* p; // 质数
-    BIGNUM* g; // 原根
-    BIGNUM* share; // 秘密份额
-    BIGNUM** comms; // 承诺
+    BIGNUM* secret; // 秘密份额(即0次项)
+    BIGNUM** coeffs; // 多项式系数
+    BIGNUM* share; // 共享份额
 } VSS_ctx;
 
-typedef struct
-{
-    BIGNUM* p; // 质数
-    BIGNUM* g; // 原根
-    BIGNUM* secret; // 秘密
-    BIGNUM** comms; // 承诺
-    BIGNUM** shares;  // 秘密份额
-    BIGNUM** coeffs;  // 多项式系数
+// 初始化VSS上下文，独立生成秘密和多项式系数
+void VSS_init(VSS_ctx* ctx);
 
-    int degree; // 多项式次数
-} TTP_VSS_ctx;
-
-// 初始化VSS上下文
-void VSS_init(VSS_ctx* ctx, BIGNUM* p, BIGNUM* g);
-
-// 初始化TTP_VSS上下文
-void TTP_VSS_init(TTP_VSS_ctx* ctx, BIGNUM* P, BIGNUM* G);
-
-//生成随机秘密（也是SPX的私钥）
-void generate_secret(BIGNUM* secret, BIGNUM* p);
-
-// 查找原根
-BIGNUM* find_primitive_root(BIGNUM* p, BN_CTX* ctx);
+//生成随机秘密
+void generate_secret(BIGNUM* secret);
 
 // 初始化加密参数
-void init_crypto_params(BIGNUM* PRIME, BIGNUM* GENERATOR);
+void init_crypto_params(BIGNUM* PRIME);
 
-// 生成多项式系数（模PRIME-1）
-void generate_coefficients(BIGNUM** coeffs, int degree, const BIGNUM *secret, const BIGNUM *prime, BN_CTX *ctx);
+// 生成多项式系数
+void generate_coefficients(BIGNUM** coeffs, const BIGNUM *secret,  BN_CTX *ctx);
 
 // 多项式求值
-void evaluate_poly(BIGNUM *result, BIGNUM** coeffs, int degree, const BIGNUM *x, const BIGNUM *prime, BN_CTX *ctx);
+void evaluate_poly(BIGNUM *result, BIGNUM** coeffs,const BIGNUM *x,  BN_CTX *ctx);
 
-// 生成承诺
-void generate_commitments(BIGNUM** comms, BIGNUM** coeffs, int degree, const BIGNUM* prime, const BIGNUM* g, BN_CTX *ctx);
+// 生成共享份额，即i发送给j的份额f_i(j)
+void generate_shares(BIGNUM** shares, BIGNUM** coeffs,  BN_CTX *ctx);
 
-// 生成秘密份额
-void generate_shares(BIGNUM** shares, BIGNUM** coeffs, int degree,const BIGNUM* p, BN_CTX *ctx);
+//聚合共享份额，计算出y_i
+void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards);
 
-// 验证分享
-int verify_share(const BIGNUM* share, const BIGNUM* x, const BIGNUM** comms, int degree, const BIGNUM* p, const BIGNUM* g);
+//生成门限签名聚合阶段的聚合分片y_i*l_i
+void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid);
+
+//累加份额恢复私钥，用于keygen和sign的TTP
+void recover_secret(BIGNUM* secret, BIGNUM** shards, int shards_len);
 
 #endif

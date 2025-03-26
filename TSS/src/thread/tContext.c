@@ -1,7 +1,7 @@
 #include "tContext.h"
 
 //初始化参与方的ctx
-int init_ctx(thread_ctx* ctx, int tid, unsigned char* M, ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list, BIGNUM* p, BIGNUM* g) {
+int init_ctx(thread_ctx* ctx, int tid, unsigned char* M, ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list) {
     ctx->m = malloc(SPX_MLEN);
     memcpy(ctx->m, M, SPX_MLEN);
 
@@ -11,9 +11,6 @@ int init_ctx(thread_ctx* ctx, int tid, unsigned char* M, ThreadSafeQueue* channe
 
     ctx->self_channel = channel;
     ctx->public_channel_list = public_channel_list;
-
-    ctx->p = p;
-    ctx->g = g;
 
     if (ctx->m == NULL || ctx->sm == NULL || ctx->mout == NULL) {
         free(ctx->m);
