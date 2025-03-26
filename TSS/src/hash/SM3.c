@@ -297,7 +297,6 @@ void seed_state(spx_ctx *ctx) {
 		block[i] = 0;
 	}
 	
-	/* block has been properly initialized for both SHA-256 and SHA-512 */
 
 	sm3_inc_init(ctx->state_seeded);
 

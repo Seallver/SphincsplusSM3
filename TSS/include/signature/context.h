@@ -9,8 +9,6 @@ typedef struct {
     uint8_t pub_seed[SPX_N];
     uint8_t sk_seed[SPX_N];
     uint8_t state_seeded[40];
-
-
 } spx_ctx;
 
 #endif

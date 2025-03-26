@@ -6,6 +6,7 @@
 #include "logic.h"
 
 
+
 BIGNUM* prime;
 BIGNUM* generator;
 pthread_barrier_t barrier;
@@ -22,10 +23,6 @@ int main(void)
 
     //初始化屏障
     pthread_barrier_init(&barrier, NULL, PLAYERS);
-
-    //随机生成明文
-    unsigned char* M = malloc(SPX_MLEN);
-    randombytes(M, SPX_MLEN);
     
     printf("Threshold Testing (n = %d, t = %d)\n", NUMBER_OF_THREADS, THRESHOLD);
 
@@ -38,7 +35,7 @@ int main(void)
     //声明每个线程的ctx并初始化
     thread_ctx ctx[NUMBER_OF_THREADS];
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
-        if (init_ctx(&ctx[i], i, M, &channel[i], channel) != 0) {
+        if (init_ctx(&ctx[i], i, &channel[i], channel) != 0) {
             printf("Failed to initialize context\n");
             return -1;
         }
@@ -46,6 +43,7 @@ int main(void)
 
     //声明线程（参与方与可信第三方）
     pthread_t threads[NUMBER_OF_THREADS];
+
 
     printf("KEYGEN: start...\n");
     //TTP开始keygen
@@ -68,8 +66,20 @@ int main(void)
 
     printf("KEYGEN: successful\n");
 
+    //修改线程屏障
     pthread_barrier_destroy(&barrier);
     pthread_barrier_init(&barrier, NULL, THRESHOLD);
+
+    //随机生成明文并分配给上下文
+    unsigned char* M = malloc(SPX_MLEN);
+    randombytes(M, SPX_MLEN);
+    for (int i = 0;i < NUMBER_OF_THREADS;i++) {
+        if (input_m(&ctx[i], M) != 0) {
+            printf("Failed to input m into context\n");
+            return -1;
+        }
+    }
+
 
     printf("SIGN: start...\n");
 
@@ -94,13 +104,20 @@ int main(void)
     //TTP开始签名
     pthread_create(&threads[0], NULL, sign_TTP_logic, &ctx[0]);
 
+    
     //签名结束查看各个线程是否成功运行
+    int res = 0;
+    pthread_join(threads[0], &res);
+    if (res) {
+        printf("TTP failed to signature\n");
+        return -1;
+    }
     for (int i = 0;i < THRESHOLD;i++) {
         int res = 0;
         int tid = threshold[i];
         pthread_join(threads[tid], &res);
         if (res) {
-            printf("Thread %d Failed to signature\n", i);
+            printf("Thread %d failed to signature\n", i);
             return -1;
         }
     }

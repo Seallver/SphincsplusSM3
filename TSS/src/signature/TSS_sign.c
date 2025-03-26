@@ -141,7 +141,7 @@ int tss_crypto_sign_signature(uint8_t *sig, size_t *siglen,
 
         merkle_sign(sig, root, &ctx, wots_addr, tree_addr, idx_leaf);
         sig += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
-
+        
         /* Update the indices for the next layer. */
         idx_leaf = (tree & ((1 << SPX_TREE_HEIGHT)-1));
         tree = tree >> SPX_TREE_HEIGHT;
@@ -151,6 +151,65 @@ int tss_crypto_sign_signature(uint8_t *sig, size_t *siglen,
 
     return 0;
 }
+
+int tss_sign_FORS(uint8_t* sig, const uint8_t* m, size_t mlen, const uint8_t* seed, const unsigned char* pk, unsigned char* R)
+{
+    spx_ctx ctx;
+
+    unsigned char optrand[SPX_N];
+    unsigned char mhash[SPX_FORS_MSG_BYTES];
+    unsigned char root[SPX_N];
+    uint64_t tree;
+    uint32_t idx_leaf;
+    uint32_t wots_addr[8] = {0};
+    uint32_t tree_addr[8] = {0};
+
+    memcpy(ctx.sk_seed, seed, SPX_N);
+    memcpy(ctx.pub_seed, pk, SPX_N);
+
+    /* This hook allows the hash function instantiation to do whatever
+       preparation or computation it needs, based on the public seed. */
+    initialize_hash_function(&ctx);
+
+    set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
+
+    /* Derive the message digest and leaf index from R, PK and M. */
+    hash_message(mhash, &tree, &idx_leaf, R, pk, m, mlen, &ctx);
+
+    set_tree_addr(wots_addr, tree);
+    set_keypair_addr(wots_addr, idx_leaf);
+
+    /* Sign the message hash using FORS. */
+    fors_sign(sig, root, mhash, &ctx, wots_addr);
+
+    return 0;
+}
+
+int tss_gen_R(unsigned char* R, const uint8_t* m, const uint8_t* sk)
+{
+    size_t mlen = SPX_MLEN;
+    spx_ctx ctx;
+    const unsigned char *sk_prf = sk + SPX_N;
+    const unsigned char *pk = sk + 2*SPX_N;
+
+    unsigned char optrand[SPX_N];
+
+    memcpy(ctx.sk_seed, sk, SPX_N);
+    memcpy(ctx.pub_seed, pk, SPX_N);
+
+    initialize_hash_function(&ctx);
+
+    randombytes(optrand, SPX_N);
+
+    gen_message_random(R, sk_prf, optrand, m, mlen, &ctx);
+
+    return 0;
+}
+
+int tss_gen_FORS_seed(unsigned char* seed) {
+    randombytes(seed, SPX_N);
+}
+
 
 /**
  * Verifies a detached signature and message under a given public key.

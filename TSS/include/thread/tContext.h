@@ -10,9 +10,10 @@ typedef struct {
     unsigned char pk[SPX_PK_BYTES];
     unsigned char sk[SPX_SK_BYTES];
 
+    unsigned char* R;
     unsigned char* m;
     unsigned char* sm;
-    unsigned char *mout;
+    unsigned char* mout;
     unsigned long long smlen;
     unsigned long long mlen;
 
@@ -25,6 +26,10 @@ typedef struct {
 } thread_ctx;
 
 //初始化线程上下文
-int init_ctx(thread_ctx* ctx, int tid, unsigned char* M, ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list);
+int init_ctx(thread_ctx* ctx, int tid, ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list);
+
+//签名的时候输入明文
+int input_m(thread_ctx* ctx, unsigned char* M);
+
 
 #endif

@@ -46,7 +46,8 @@
         "utility": "c",
         "logic.h": "c",
         "globals.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "utilsx1.h": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

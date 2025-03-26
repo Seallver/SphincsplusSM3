@@ -18,6 +18,23 @@ void keygen_ttp_bc_pk(thread_ctx* thread_ctx, const unsigned char* pk);
 //参与方接收pk
 void keygen_recv_pk(thread_ctx* thread_ctx);
 
+//TTP广播R
+void presign_ttp_bc_R(thread_ctx* thread_ctx, unsigned char* R);
+
+//TTP广播FORS私钥种子
+void presign_ttp_bc_FORS_seed(thread_ctx* thread_ctx, unsigned char* seed);
+
+//参与方接收R
+void presign_player_recv_R(thread_ctx* thread_ctx);
+
+//参与方接收FORS私钥种子
+void presign_player_recv_seed(thread_ctx* ctx, unsigned char* seed);
+
+
+
+
+
+
 // 发送消息(小于0的时候认为是广播)
 void Send_Msg(ThreadSafeQueue* queue, int from, int to, const unsigned char* data, size_t data_len);
 
@@ -32,3 +49,4 @@ void P2P_Msg(ThreadSafeQueue* queue, Msg * msg);
 
 // 接收消息
 void Recv_Msg(ThreadSafeQueue* queue, Msg* recvmsg);
+

@@ -32,6 +32,10 @@ int sign_player_logic(thread_ctx* ctx) {
 
     presign_round_player(ctx);
 
+    pthread_barrier_wait(&barrier);
+
+    sign_round(ctx);
+
     printf("Sign: Thread %u end\n", tid);
     return 0;
 }
@@ -42,4 +46,5 @@ int sign_TTP_logic(thread_ctx* ctx) {
     presign_round_ttp(ctx);
 
     printf("Sign: Thread 0 end (TTP)\n");
+    return 0;
 }

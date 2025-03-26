@@ -111,6 +111,40 @@ void presign_ttp_recv_shards(thread_ctx* thread_ctx, BIGNUM* sk) {
     recover_secret(sk, shards, THRESHOLD);
 }
 
+void presign_ttp_bc_R(thread_ctx* thread_ctx, unsigned char* R) {
+    Send_Msg(thread_ctx->public_channel_list, 0, -1, R, SPX_BYTES);
+}
+
+void presign_ttp_bc_FORS_seed(thread_ctx* thread_ctx, unsigned char * seed) {
+    Send_Msg(thread_ctx->public_channel_list, 0, -1, seed, SPX_N);
+}
+
+
+void presign_player_recv_R(thread_ctx* thread_ctx) {
+    Msg* R = (Msg*)malloc(sizeof(Msg));
+    Recv_Msg(thread_ctx->self_channel, R);
+    unsigned char* data = R->data;
+    size_t data_len = R->data_len;
+    memcpy(thread_ctx->R, data, data_len);
+}
+
+void presign_player_recv_seed(thread_ctx* ctx, unsigned char* seed) {
+    Msg* seedmsg = (Msg*)malloc(sizeof(Msg));
+    Recv_Msg(ctx->self_channel, seedmsg);
+    unsigned char* data = seedmsg->data;
+    size_t data_len = seedmsg->data_len;
+    memcpy(seed, data, data_len);
+}
+
+
+
+
+
+
+
+
+
+
 
 // 发送消息
 void Send_Msg(ThreadSafeQueue* queuelist, int from, int to, const unsigned char* data, size_t data_len) {
