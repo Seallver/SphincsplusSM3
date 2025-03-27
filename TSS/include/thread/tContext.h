@@ -1,27 +1,41 @@
+#ifndef TCONTEXT
+#define TCONTEXT
+
 #include <pthread.h>
 #include "ThreadSafeQueue.h"
 #include "VSS.h"
+
 #define SPX_MLEN 32
-#ifndef TCONTEXT
-#define TCONTEXT
- 
+
+struct VSS_ctx;
 
 typedef struct {
+    unsigned int tid;
+
+    //公钥和私钥份额
     unsigned char pk[SPX_PK_BYTES];
     unsigned char sk[SPX_SK_BYTES];
 
-    unsigned char* R;
+    //签名用到的变量
     unsigned char* m;
     unsigned char* sm;
     unsigned char* mout;
     unsigned long long smlen;
     unsigned long long mlen;
+    unsigned char mhash[SPX_FORS_MSG_BYTES];
+    unsigned char root[SPX_N];
 
-    unsigned int tid;
+    //签名用到的地址编码
+    uint32_t wots_addr[8];
+    uint32_t tree_addr[8];
+    uint64_t tree;
+    uint32_t idx_leaf;
 
+    //信道
     ThreadSafeQueue* self_channel;
     ThreadSafeQueue* public_channel_list;
 
+    //VSS上下文
     VSS_ctx* vss_ctx;  //for player , 无记忆 TTP 无法保留参数
 } thread_ctx;
 

@@ -1,4 +1,6 @@
 #include "communication.h"
+#include "TSS_api.h"
+#include "globals.h"
 
 void keygen_round_ttp(thread_ctx* ctx);
 

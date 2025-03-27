@@ -28,10 +28,15 @@ void merkle_sign(uint8_t *sig, unsigned char *root,
     chain_lengths(steps, root);
     info.wots_steps = steps;
 
+
+
+
     set_type(&tree_addr[0], SPX_ADDR_TYPE_HASHTREE);
     set_type(&info.pk_addr[0], SPX_ADDR_TYPE_WOTSPK);
     copy_subtree_addr(&info.leaf_addr[0], wots_addr);
     copy_subtree_addr(&info.pk_addr[0], wots_addr);
+
+
 
     info.wots_sign_leaf = idx_leaf;
 
@@ -40,6 +45,9 @@ void merkle_sign(uint8_t *sig, unsigned char *root,
                 SPX_TREE_HEIGHT,
                 wots_gen_leafx1,
                 tree_addr, &info);
+
+
+
 }
 
 /* Compute root node of the top-most subtree. */

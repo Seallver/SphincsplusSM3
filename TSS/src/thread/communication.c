@@ -125,22 +125,31 @@ void presign_player_recv_R(thread_ctx* thread_ctx) {
     Recv_Msg(thread_ctx->self_channel, R);
     unsigned char* data = R->data;
     size_t data_len = R->data_len;
-    memcpy(thread_ctx->R, data, data_len);
+    memcpy(thread_ctx->sm, data, data_len);
 }
 
-void presign_player_recv_seed(thread_ctx* ctx, unsigned char* seed) {
+void presign_player_recv_seed(thread_ctx* ctx) {
     Msg* seedmsg = (Msg*)malloc(sizeof(Msg));
     Recv_Msg(ctx->self_channel, seedmsg);
     unsigned char* data = seedmsg->data;
     size_t data_len = seedmsg->data_len;
-    memcpy(seed, data, data_len);
+    memcpy(ctx->sk, data, data_len);
+}
+
+void sign_bc_sig_shards(thread_ctx* ctx, const unsigned char* sig_shards) {
+    Send_Msg(ctx->public_channel_list, 0, -1, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);    
 }
 
 
 
-
-
-
+void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards,int *from) {
+    Msg* msg = (Msg*)malloc(sizeof(Msg));
+    Recv_Msg(ctx->self_channel, msg);
+    unsigned char* data = msg->data;
+    size_t data_len = msg->data_len;
+    memcpy(sig_shards, data, data_len);
+    *from = msg->from;
+}
 
 
 

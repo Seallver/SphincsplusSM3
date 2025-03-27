@@ -12,6 +12,11 @@ BIGNUM* generator;
 pthread_barrier_t barrier;
 int threshold[PLAYERS];
 
+// 比较函数（升序排序）
+int compare_asc(const void *a, const void *b) {
+    return (*(int*)a - *(int*)b); // 升序
+}
+
 int main(void)
 {
     
@@ -95,8 +100,14 @@ int main(void)
         threshold[i] = threshold[j];
         threshold[j] = temp;
     }
-    
-    //从乱序的参与方中选前t个作为门限方进行签名
+
+    //从乱序的参与方中选前t个作为门限方，把前t个重新升序排序
+    for (int i = 0;i < THRESHOLD;i++) {
+        qsort(threshold, THRESHOLD, sizeof(int), compare_asc);
+    }
+
+
+    //门限方开始签名
     for (int i = 0;i < THRESHOLD;i++) {
         int tid = threshold[i];
         pthread_create(&threads[tid], NULL, sign_player_logic, &ctx[tid]);

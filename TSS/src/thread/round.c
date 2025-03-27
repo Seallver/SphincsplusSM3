@@ -1,5 +1,5 @@
 #include "round.h"
-#include "globals.h"
+
 
 //互斥锁，输出函数
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -77,7 +77,6 @@ void keygen_round_player(thread_ctx* thread_ctx) {
 void presign_round_player(thread_ctx* ctx) {
     //初始化变量
     unsigned long long smlen;
-    unsigned char* seed = malloc(SPX_N);
     //计算门限份额
     BIGNUM* shares = BN_new();
     BN_copy(shares, ctx->vss_ctx->share);
@@ -90,12 +89,11 @@ void presign_round_player(thread_ctx* ctx) {
     presign_player_recv_R(ctx);
 
     //接收FORS私钥种子
-    presign_player_recv_seed(ctx, seed);
+    presign_player_recv_seed(ctx);
 
     //生成地址编码并签名FORS
-    tss_sign_FORS(ctx->sm, ctx->m, ctx->mlen, seed, ctx->pk, ctx->R);
+    tss_sign_FORS(ctx);
 
-    free(seed);
     BN_free(shares);
 
 }
@@ -133,5 +131,39 @@ void presign_round_ttp(thread_ctx* ctx) {
 }
 
 void sign_round(thread_ctx* ctx) {
+    //计算出自己WOTS签名的地址
+    tss_gen_addr(ctx);
+
+    //初始化签名准备
+    unsigned char* sk = malloc(SPX_SK_BYTES);
+    int len = BN_bn2bin(ctx->vss_ctx->secret, sk);
+    memcpy(ctx->sk, sk, SPX_SK_BYTES);
+    unsigned char* sig_shards = malloc(SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+
     
+
+    //判断是否是第一层WOTS签名方
+    if (ctx->tid == threshold[0]) {
+        //生成签名
+        tss_sign_WOTS(ctx, sig_shards);
+        memcpy(ctx->sm + SPX_FORS_BYTES + SPX_N, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+        //广播签名份额
+        sign_bc_sig_shards(ctx, sig_shards);
+        //向下一个门限层发送root
+
+    }
+    int* from;
+    //接收其他方发来的签名份额
+    for (int i = 1;i <= THRESHOLD;i++) {
+        //检查份额的发送方是否是自己的上一层
+        sign_recv_sig_shards(ctx, sig_shards, &from);
+        if(threshold[i]==ctx->tid) {
+            //签名并广播
+
+            //向下一个门限层发送root
+
+        }
+    }
+    //最后一层参与方把root发送给TTP让TTP进行签名
+
 }

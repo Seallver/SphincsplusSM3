@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "TSS_api.h"
-#include "params.h"
+
 #include "wots.h"
 #include "fors.h"
 #include "hash.h"
@@ -138,7 +138,7 @@ int tss_crypto_sign_signature(uint8_t *sig, size_t *siglen,
 
         copy_subtree_addr(wots_addr, tree_addr);
         set_keypair_addr(wots_addr, idx_leaf);
-
+        
         merkle_sign(sig, root, &ctx, wots_addr, tree_addr, idx_leaf);
         sig += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
         
@@ -152,36 +152,56 @@ int tss_crypto_sign_signature(uint8_t *sig, size_t *siglen,
     return 0;
 }
 
-int tss_sign_FORS(uint8_t* sig, const uint8_t* m, size_t mlen, const uint8_t* seed, const unsigned char* pk, unsigned char* R)
+int tss_gen_addr(thread_ctx* ctx) {
+    for (int i = 0;i < ctx->tid;i++) {
+        set_layer_addr(ctx->tree_addr, i);
+        set_tree_addr(ctx->tree_addr, ctx->tree);
+        
+        copy_subtree_addr(ctx->wots_addr, ctx->tree_addr);
+        set_keypair_addr(ctx->wots_addr, ctx->idx_leaf);
+
+        if (i == ctx->tid - 1) break;
+        ctx->idx_leaf = (ctx->tree & ((1 << SPX_TREE_HEIGHT) - 1));
+        ctx->tree = ctx->tree >> SPX_TREE_HEIGHT;
+    }
+}
+
+
+int tss_sign_WOTS(thread_ctx* thread_ctx,unsigned char * sig)
+{
+    spx_ctx ctx;
+    memcpy(ctx.sk_seed, thread_ctx->sk, SPX_N);
+    memcpy(ctx.pub_seed, thread_ctx->pk, SPX_N);
+
+    merkle_sign(sig, thread_ctx->root, &ctx, thread_ctx->wots_addr, thread_ctx->tree_addr, thread_ctx->idx_leaf);
+}
+
+
+int tss_sign_FORS(thread_ctx* thread_ctx)
 {
     spx_ctx ctx;
 
     unsigned char optrand[SPX_N];
-    unsigned char mhash[SPX_FORS_MSG_BYTES];
-    unsigned char root[SPX_N];
-    uint64_t tree;
-    uint32_t idx_leaf;
-    uint32_t wots_addr[8] = {0};
-    uint32_t tree_addr[8] = {0};
 
-    memcpy(ctx.sk_seed, seed, SPX_N);
-    memcpy(ctx.pub_seed, pk, SPX_N);
+    memcpy(ctx.sk_seed, thread_ctx->sk, SPX_N);
+    memcpy(ctx.pub_seed, thread_ctx->pk, SPX_N);
 
     /* This hook allows the hash function instantiation to do whatever
        preparation or computation it needs, based on the public seed. */
     initialize_hash_function(&ctx);
 
-    set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
+    set_type(thread_ctx->wots_addr, SPX_ADDR_TYPE_WOTS);
 
     /* Derive the message digest and leaf index from R, PK and M. */
-    hash_message(mhash, &tree, &idx_leaf, R, pk, m, mlen, &ctx);
+    hash_message(thread_ctx->mhash, &thread_ctx->tree, &thread_ctx->idx_leaf, thread_ctx->sm , thread_ctx->pk, thread_ctx->m, thread_ctx->mlen, &ctx);
+    thread_ctx->sm += SPX_N;
 
-    set_tree_addr(wots_addr, tree);
-    set_keypair_addr(wots_addr, idx_leaf);
+    set_tree_addr(thread_ctx->wots_addr, thread_ctx->tree);
+    set_keypair_addr(thread_ctx->wots_addr, thread_ctx->idx_leaf);
 
     /* Sign the message hash using FORS. */
-    fors_sign(sig, root, mhash, &ctx, wots_addr);
-
+    fors_sign(thread_ctx->sm, thread_ctx->root, thread_ctx->mhash, &ctx, thread_ctx->wots_addr);
+    
     return 0;
 }
 

@@ -28,12 +28,13 @@ void presign_ttp_bc_FORS_seed(thread_ctx* thread_ctx, unsigned char* seed);
 void presign_player_recv_R(thread_ctx* thread_ctx);
 
 //参与方接收FORS私钥种子
-void presign_player_recv_seed(thread_ctx* ctx, unsigned char* seed);
+void presign_player_recv_seed(thread_ctx* ctx);
 
+//门限方广播签名份额
+void sign_bc_sig_shards(thread_ctx*ctx, const unsigned char *sig_shards);
 
-
-
-
+//门限方接收签名份额
+void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards,int *from);
 
 // 发送消息(小于0的时候认为是广播)
 void Send_Msg(ThreadSafeQueue* queue, int from, int to, const unsigned char* data, size_t data_len);

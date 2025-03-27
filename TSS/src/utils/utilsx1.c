@@ -36,6 +36,7 @@ void treehashx1(unsigned char *root, unsigned char *auth_path,
 
     uint32_t idx;
     uint32_t max_idx = (uint32_t)((1 << tree_height) - 1);
+
     for (idx = 0;; idx++) {
         unsigned char current[2*SPX_N];   /* Current logical node is at */
             /* index[SPX_N].  We do this to minimize the number of copies */
@@ -83,6 +84,7 @@ void treehashx1(unsigned char *root, unsigned char *auth_path,
 
             /* Set the address of the node we're creating. */
             internal_idx_offset >>= 1;
+
             set_tree_height(tree_addr, h + 1);
             set_tree_index(tree_addr, internal_idx/2 + internal_idx_offset );
 
@@ -97,4 +99,5 @@ void treehashx1(unsigned char *root, unsigned char *auth_path,
         /* corresponding right right */
         memcpy( &stack[h * SPX_N], &current[SPX_N], SPX_N);
     }
+
 }

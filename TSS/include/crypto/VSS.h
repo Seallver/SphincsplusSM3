@@ -4,12 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "TSS_api.h"
+
+#include <openssl/bn.h>
+#include "params.h"
 #include "globals.h"
 
-
 // 质数相关参数
-#define MIN_PRIME_BITS CRYPTO_SEEDBYTES * 8   // 最小质数位数
+#define MIN_PRIME_BITS 3 * SPX_N * 8   // 最小质数位数
 #define DEGREE THRESHOLD - 1
 
 typedef struct

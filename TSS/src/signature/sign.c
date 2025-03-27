@@ -248,9 +248,7 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
                 const unsigned char *sk)
 {
     size_t siglen;
-
     crypto_sign_signature(sm, &siglen, m, (size_t)mlen, sk);
-
     memmove(sm + SPX_BYTES, m, mlen);
     *smlen = siglen + mlen;
 

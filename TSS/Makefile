@@ -13,10 +13,6 @@ CFLAGS = -Qn -w -Wall -Wextra -Wpedantic -g -O3 -std=c99 \
          -pthread -D_GNU_SOURCE \
          $(path) \
 
-
-
-
-
 # 源文件路径重构
 BASE_SRCDIR = src
 SOURCES = $(BASE_SRCDIR)/signature/address.c \
@@ -25,23 +21,24 @@ SOURCES = $(BASE_SRCDIR)/signature/address.c \
           $(BASE_SRCDIR)/signature/wotsx1.c \
           $(BASE_SRCDIR)/signature/fors.c \
           $(BASE_SRCDIR)/signature/sign.c \
-          $(BASE_SRCDIR)/signature/TSS_sign.c \
           $(BASE_SRCDIR)/utils/utils.c \
           $(BASE_SRCDIR)/utils/utilsx1.c \
           $(BASE_SRCDIR)/utils/randombytes.c \
           $(BASE_SRCDIR)/hash/SM3.c \
           $(BASE_SRCDIR)/hash/hash_SM3.c \
           $(BASE_SRCDIR)/hash/thash_SM3_$(THASH).c \
-          $(BASE_SRCDIR)/thread/ThreadSafeQueue.c \
-          $(BASE_SRCDIR)/thread/communication.c \
-          $(BASE_SRCDIR)/thread/tContext.c \
-          $(BASE_SRCDIR)/thread/round.c \
-          $(BASE_SRCDIR)/thread/logic.c \
-          $(BASE_SRCDIR)/crypto/VSS.c \
 
+
+TSS_SOURCES = $(SOURCES) \
+              $(BASE_SRCDIR)/signature/TSS_sign.c \
+              $(BASE_SRCDIR)/thread/ThreadSafeQueue.c \
+              $(BASE_SRCDIR)/thread/communication.c \
+              $(BASE_SRCDIR)/thread/tContext.c \
+              $(BASE_SRCDIR)/thread/round.c \
+              $(BASE_SRCDIR)/thread/logic.c \
+              $(BASE_SRCDIR)/crypto/VSS.c \
 
 HEADERS = include/params/params.h \
-          include/params/globals.h \
           include/signature/address.h \
           include/signature/fors.h \
           include/signature/merkle.h \
@@ -54,16 +51,17 @@ HEADERS = include/params/params.h \
           include/hash/thash.h \
           include/hash/SM3.h \
           include/hash/SM3_offsets.h \
+          include/api.h \
+          
+TSS_HEADERS = $(HEADERS) \
+          include/TSS_api.h \
           include/thread/ThreadSafeQueue.h \
           include/thread/communication.h \
           include/thread/tContext.h \
           include/thread/round.h \
           include/thread/logic.h \
           include/crypto/VSS.h \
-          include/api.h \
-          include/TSS_api.h \
-          
-
+          include/params/globals.h \
 
 LDLIBS += -lpthread -lcrypto
 
@@ -116,8 +114,8 @@ test/%.exec: test/%
 	@$<
 
 # TSS测试构建
-test/TSS: test/TSS.c $(SOURCES) $(HEADERS)
-	@ $(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
+test/TSS: test/TSS.c $(TSS_SOURCES) $(TSS_HEADERS)
+	@ $(CC) $(CFLAGS) -o $@ $(TSS_SOURCES) $< $(LDLIBS)
 
 clean:
 	-$(RM) $(TESTS)

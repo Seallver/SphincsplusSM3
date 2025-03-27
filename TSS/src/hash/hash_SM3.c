@@ -129,7 +129,7 @@ void hash_message(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
 
     sm3_inc_init(state);
 
-    // seed: SHA-X(R ‖ PK.seed ‖ PK.root ‖ M)
+    // seed: SM3(R ‖ PK.seed ‖ PK.root ‖ M)
     memcpy(inbuf, R, SPX_N);
     memcpy(inbuf + SPX_N, pk, SPX_PK_BYTES);
 
@@ -149,7 +149,7 @@ void hash_message(unsigned char *digest, uint64_t *tree, uint32_t *leaf_idx,
         sm3_inc_finalize(seed + 2*SPX_N, state, m, mlen);
     }
 
-    // H_msg: MGF1-SHA-X(R ‖ PK.seed ‖ seed)
+    // H_msg: MGF1-SM3(R ‖ PK.seed ‖ seed)
     memcpy(seed, R, SPX_N);
     memcpy(seed + SPX_N, pk, SPX_N);
 
