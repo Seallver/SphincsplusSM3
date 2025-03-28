@@ -1,11 +1,11 @@
 #include "round.h"
 
 
-//互斥锁，输出函数
+//互斥锁，调试用输出函数
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 void print_char(unsigned char* chr, int len, int tid) {
     pthread_mutex_lock(&mutex);
-    printf("Thread %d: ", tid);
+    printf("Thread %d: \t", tid);
     for (int i = 0; i < len; i++) {
         printf("%x", chr[i]);
     }
@@ -95,40 +95,7 @@ void presign_round_player(thread_ctx* ctx) {
     //生成地址编码并签名FORS
     tss_sign_FORS(ctx);
 
-
     BN_free(shares);
-
-}
-
-
-void presign_round_ttp(thread_ctx* ctx) {
-    //接收并聚合共享秘密份额得到Seed
-    BIGNUM* Seed = BN_new();
-    ttp_recv_lagrange_shards(ctx, Seed);
-
-    //生成私钥
-    unsigned char* seed = (unsigned char*)malloc(BN_num_bytes(Seed));
-    int len = BN_bn2bin(Seed, seed);
-    if (len <= 0) {
-        fprintf(stderr, "Error: Failed to gen seed\n");
-    }
-    unsigned char pk[SPX_PK_BYTES];
-    unsigned char sk[SPX_SK_BYTES];
-    tss_crypto_sign_keypair(pk, sk, seed);
-
-    //生成随机数R
-    unsigned char* R = malloc(SPX_BYTES);
-    tss_gen_R(R, ctx->m, sk);
-    
-    //广播R
-    presign_ttp_bc_R(ctx, R);
-
-    //生成FORS的私钥种子
-    unsigned char fors_seed[SPX_N];
-    tss_gen_FORS_seed(fors_seed);
-
-    //广播FORS的私钥种子
-    presign_ttp_bc_FORS_seed(ctx, fors_seed);
 
 }
 
@@ -139,7 +106,7 @@ void sign_round_player(thread_ctx* ctx) {
     //初始化签名准备
     unsigned char* sk = malloc(SPX_SK_BYTES);
     int len = BN_bn2bin(ctx->vss_ctx->secret, sk);
-    memcpy(ctx->sk, sk, SPX_SK_BYTES);
+    memcpy(ctx->sk, sk, SPX_N);
     unsigned char* sig_shards = malloc(SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
 
     
@@ -185,6 +152,7 @@ void sign_round_player(thread_ctx* ctx) {
                 sign_p2p_root(ctx, 0);
                 //广播消息
                 sign_bc_sig_shards(ctx, sig_shards);
+                flag = true;
             }
             else {
                 //广播消息
@@ -197,21 +165,21 @@ void sign_round_player(thread_ctx* ctx) {
         }
     }
 
-    //再次向TTP发送拉格朗日插值份额
-    presign_player_p2ttp_shards(ctx);
     //等待接收最终签名份额
+    sign_recv_sig_shards(ctx, sig_shards);
+    memcpy(ctx->sm, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+    ctx->sm += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
 
+    
 }
 
 
 void sign_round_ttp(thread_ctx* ctx) {
-    //接收root为签名做准备
-    sign_recv_root(ctx);
-
-    //接收拉格朗日份额聚合得到临时私钥
+    //接收并聚合共享秘密份额得到Seed
     BIGNUM* Seed = BN_new();
     ttp_recv_lagrange_shards(ctx, Seed);
-    
+
     //生成私钥
     unsigned char* seed = (unsigned char*)malloc(BN_num_bytes(Seed));
     int len = BN_bn2bin(Seed, seed);
@@ -222,16 +190,48 @@ void sign_round_ttp(thread_ctx* ctx) {
     unsigned char sk[SPX_SK_BYTES];
     tss_crypto_sign_keypair(pk, sk, seed);
 
-    //生成地址
-    tss_gen_ttp_addr(ctx);
+    memcpy(ctx->pk, pk, SPX_PK_BYTES);
 
+    //生成随机数R
+    unsigned char* R = malloc(SPX_BYTES);
+    tss_gen_R(R, ctx->m, sk);
+    
+    //广播R
+    presign_ttp_bc_R(ctx, R);
 
-    //生成签名份额
+    //生成FORS的私钥种子
+    unsigned char fors_seed[SPX_N];
+    tss_gen_FORS_seed(fors_seed);
+
+    //广播FORS的私钥种子
+    presign_ttp_bc_FORS_seed(ctx, fors_seed);
+
+    //计算对顶层签名所需要的地址
+    tss_gen_ttp_addr(ctx, R);
+
+    //接收顶层root为签名做准备
+    sign_recv_root(ctx);
+
+    //生成顶层签名份额
     unsigned char* sig_shards = malloc(SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
-    tss_sign_WOTS(ctx, sig_shards);
+    tss_sign_WOTS_ttp(ctx, sig_shards, sk);
 
-    print_char(sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N, ctx->tid);
+    //广播顶层签名份额
+    sign_bc_sig_shards(ctx, sig_shards);
 
-    //广播签名份额
+}
 
+
+int vrfy_round_player(thread_ctx* ctx) {
+    //还原sm指针
+    ctx->sm -= ctx->smlen;
+
+    //把消息级联到签名后面方便验证
+    memmove(ctx->sm + SPX_BYTES, ctx->m, ctx->mlen);
+
+    //验证签名
+    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk)) {
+        return -1;
+    }
+    return 0;
 }

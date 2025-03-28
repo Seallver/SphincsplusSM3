@@ -49,31 +49,12 @@ int tss_crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
  */
 int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk, const unsigned char *seed);
 
-/**
- * Returns an array containing a detached signature.
- */
-int tss_crypto_sign_signature(uint8_t *sig, size_t *siglen,
-                          const uint8_t *m, size_t mlen, const uint8_t *sk);
 
 /**
  * Verifies a detached signature and message under a given public key.
  */
 int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
                        const uint8_t *m, size_t mlen, const uint8_t *pk);
-
-/**
- * Returns an array containing the signature followed by the message.
- */
-int tss_crypto_sign(unsigned char *sm, unsigned long long *smlen,
-                const unsigned char *m, unsigned long long mlen,
-                const unsigned char *sk);
-
-/**
- * Verifies a given signature-message pair under a given public key.
- */
-int tss_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
-                     const unsigned char *sm, unsigned long long smlen,
-                     const unsigned char *pk);
 
 
 //用于预签名阶段TTP生成R
@@ -86,6 +67,15 @@ int tss_gen_FORS_seed(unsigned char* seed);
 int tss_sign_FORS(thread_ctx* ctx);
 
 //签名阶段参与方生成WOTS签名
-int tss_sign_WOTS(thread_ctx* thread_ctx,unsigned char * sig);
+int tss_sign_WOTS(thread_ctx* thread_ctx, unsigned char* sig);
+
+//最后一层WOTS签名交由TTP来完成
+int tss_sign_WOTS_ttp(thread_ctx* thread_ctx, unsigned char* sig, const unsigned char* sk);
+
+//生成addr
+int tss_gen_addr(thread_ctx* ctx);
+
+//生成TTP的addr
+int tss_gen_ttp_addr(thread_ctx* thread_ctx, const unsigned char* R);
 
 #endif

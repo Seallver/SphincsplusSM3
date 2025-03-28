@@ -5,8 +5,6 @@
 #include "globals.h"
 #include "logic.h"
 
-
-
 BIGNUM* prime;
 BIGNUM* generator;
 pthread_barrier_t barrier;
@@ -17,28 +15,66 @@ int compare_asc(const void *a, const void *b) {
     return (*(int*)a - *(int*)b); // 升序
 }
 
+//打印签名内容
+void print_sigma(const unsigned char* sigma) {
+    printf("SIGMA:\n");
+    printf("{\n");
+    printf("\tR:\t");
+    for (int i = 0; i < SPX_N; i++) {
+        if (i >= 0 && i % 64 == 0) printf("\t");
+        printf("%02x", sigma[i]);
+    }
+    printf("\n");
+    sigma += SPX_N;
+
+    printf("\tSig_FORS:\t");
+    for (int i = 0; i < SPX_FORS_BYTES; i++) {
+        if (i >= 0 && i % 64 == 0) printf("\n\t\t\t");
+        printf("%02x", sigma[i]);
+    }
+    printf("\n");
+    sigma += SPX_FORS_BYTES;
+
+    printf("\tSig_WOTS:\n");
+    for (int i = 0; i < THRESHOLD + 1; i++) {
+        printf("\t\t[%d] ", i);
+        for (int j = 0; j < SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N; j++) {
+            if (j > 0 && j % 64 == 0) printf("\n\t\t\t");
+            if (j == 0)printf("\t");
+            printf("%02x", sigma[j]);
+        }
+        printf("\n");
+        sigma += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    }
+    printf("\n");
+    printf("}\n");
+}
+
 int main(void)
 {
-    
-    //生成安全素数和原根
+    //声明变量
+    ThreadSafeQueue channel[NUMBER_OF_THREADS]; //信道
+    thread_ctx ctx[NUMBER_OF_THREADS]; //线程上下文
+    pthread_t threads[NUMBER_OF_THREADS]; //线程
+    int ret; //线程返回值
+    unsigned char* M = malloc(SPX_MLEN); //消息明文
+
+    //定义全局变量
+    //生成安全素数
     prime = BN_new();
     init_crypto_params(prime);
-    
-    printf("prime = %s\n", BN_bn2dec(prime));
-
+    printf("lagrange prime = %s\n", BN_bn2dec(prime));
     //初始化屏障
     pthread_barrier_init(&barrier, NULL, PLAYERS);
     
     printf("Threshold Testing (n = %d, t = %d)\n", NUMBER_OF_THREADS, THRESHOLD);
 
-    //创建信道
-    ThreadSafeQueue channel[NUMBER_OF_THREADS];
+
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
         ThreadSafeQueue_Init(&channel[i], (unsigned int) i);
     }
 
-    //声明每个线程的ctx并初始化
-    thread_ctx ctx[NUMBER_OF_THREADS];
+    //每个线程的ctx初始化
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
         if (init_ctx(&ctx[i], i, &channel[i], channel) != 0) {
             printf("Failed to initialize context\n");
@@ -46,37 +82,22 @@ int main(void)
         }
     }
 
-    //声明线程（参与方与可信第三方）
-    pthread_t threads[NUMBER_OF_THREADS];
-
-
+    //密钥生成
     printf("KEYGEN: start...\n");
-    //TTP开始keygen
     pthread_create(&threads[0], NULL, keygen_TTP_logic , &ctx[0]);
-
-    //参与方开始keygen
     for (int i = 1;i < NUMBER_OF_THREADS;i++) {
         pthread_create(&threads[i], NULL, keygen_player_logic , &ctx[i]);
     }
-
-    //keygen结束查看各个线程是否成功运行
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
-        int res = 0;
-        pthread_join(threads[i], &res);
-        if (res) {
-            printf("Thread %d Failed to signature\n", i);
-            return -1;
-        }
+        pthread_join(threads[i], NULL);
     }
-
     printf("KEYGEN: successful\n");
 
     //修改线程屏障
     pthread_barrier_destroy(&barrier);
     pthread_barrier_init(&barrier, NULL, THRESHOLD);
 
-    //随机生成明文并分配给上下文
-    unsigned char* M = malloc(SPX_MLEN);
+    //随机生成明文并分配给参与方上下文
     randombytes(M, SPX_MLEN);
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
         if (input_m(&ctx[i], M) != 0) {
@@ -84,55 +105,67 @@ int main(void)
             return -1;
         }
     }
+    printf("message:\t\t");
+    for (int i = 0;i < SPX_MLEN;i++) {
+        printf("%02x", M[i]);
+    }
+    printf("\n");
 
 
-    printf("SIGN: start...\n");
-
+    //随机选取门限参与方
     srand(time(NULL));
-
     for (int i = 0;i < PLAYERS;i++) {
         threshold[i] = i + 1;
     }
-    // Fisher-Yates洗牌算法，将参与方乱序
     for (int i = PLAYERS - 1; i > 0; --i) {
         int j = rand() % (i + 1); 
         int temp = threshold[i];
         threshold[i] = threshold[j];
         threshold[j] = temp;
     }
-
-    //从乱序的参与方中选前t个作为门限方，把前t个重新升序排序
     for (int i = 0;i < THRESHOLD;i++) {
         qsort(threshold, THRESHOLD, sizeof(int), compare_asc);
     }
+    if (IS_PRINT) {
+        printf("Threshold players:\t");
+        for (int i = 0;i < THRESHOLD;i++) {
+            printf("%d ", threshold[i]);
+        }
+        printf("\n");
+    }
 
-
-    //门限方开始签名
+    //签名
+    printf("SIGN: start...\n");
     for (int i = 0;i < THRESHOLD;i++) {
         int tid = threshold[i];
         pthread_create(&threads[tid], NULL, sign_player_logic, &ctx[tid]);
     }
-    //TTP开始签名
     pthread_create(&threads[0], NULL, sign_TTP_logic, &ctx[0]);
+    for (int i = 0;i < THRESHOLD;i++) {
+        int tid = threshold[i];
+        pthread_join(threads[tid], NULL);
+    }
+    pthread_join(threads[0], NULL);
+    printf("SIGN: successful\n");
 
-    
-    //签名结束查看各个线程是否成功运行
-    int res = 0;
-    pthread_join(threads[0], &res);
-    if (res) {
-        printf("TTP failed to signature\n");
-        return -1;
+    unsigned char sigma[ctx[threshold[0]].smlen];
+    memcpy(sigma, (&ctx[threshold[0]]) -> sm - ctx[threshold[0]].smlen, ctx[threshold[0]].smlen);
+    print_sigma(sigma);
+
+    //验证
+    printf("VERIFY: start...\n");
+    for (int i = 0;i < THRESHOLD;i++) {
+        int tid = threshold[i];
+        pthread_create(&threads[tid], NULL, vrfy_player_logic, &ctx[tid]);
     }
     for (int i = 0;i < THRESHOLD;i++) {
-        int res = 0;
         int tid = threshold[i];
-        pthread_join(threads[tid], &res);
-        if (res) {
-            printf("Thread %d failed to signature\n", i);
+        pthread_join(threads[tid], &ret);
+        if (ret){
+            printf("VERIFY: failed\n");
             return -1;
         }
     }
-
-    printf("SIGN: successful\n");
+    printf("VERIFY: successful\n");
 
 }

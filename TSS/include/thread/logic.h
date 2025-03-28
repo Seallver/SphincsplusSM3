@@ -13,3 +13,6 @@ int sign_player_logic(thread_ctx* ctx);
 
 //sign可信第三方线程逻辑
 int sign_TTP_logic(thread_ctx* ctx);
+
+//verify参与方线程逻辑
+int vrfy_player_logic(thread_ctx* ctx);

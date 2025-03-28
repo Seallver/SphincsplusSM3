@@ -37,6 +37,7 @@ int main(void)
     }
     printf("successful.\n");
 
+
     printf("Testing %d signatures.. \n", SPX_SIGNATURES);
 
     for (i = 0; i < SPX_SIGNATURES; i++) {
