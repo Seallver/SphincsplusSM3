@@ -10,4 +10,6 @@ void presign_round_player(thread_ctx* ctx);
 
 void presign_round_ttp(thread_ctx* ctx);
 
-void sign_round(thread_ctx* ctx);
+void sign_round_player(thread_ctx* ctx);
+
+void sign_round_ttp(thread_ctx* ctx);

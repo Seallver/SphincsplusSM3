@@ -166,6 +166,20 @@ int tss_gen_addr(thread_ctx* ctx) {
     }
 }
 
+int tss_gen_ttp_addr(thread_ctx* ctx) {
+    for (int i = 0;i < SPX_D;i++) {
+        set_layer_addr(ctx->tree_addr, i);
+        set_tree_addr(ctx->tree_addr, ctx->tree);
+        
+        copy_subtree_addr(ctx->wots_addr, ctx->tree_addr);
+        set_keypair_addr(ctx->wots_addr, ctx->idx_leaf);
+
+        if (i == SPX_D - 1) break;
+        ctx->idx_leaf = (ctx->tree & ((1 << SPX_TREE_HEIGHT) - 1));
+        ctx->tree = ctx->tree >> SPX_TREE_HEIGHT;
+    }
+}
+
 
 int tss_sign_WOTS(thread_ctx* thread_ctx,unsigned char * sig)
 {
@@ -193,15 +207,17 @@ int tss_sign_FORS(thread_ctx* thread_ctx)
     set_type(thread_ctx->wots_addr, SPX_ADDR_TYPE_WOTS);
 
     /* Derive the message digest and leaf index from R, PK and M. */
-    hash_message(thread_ctx->mhash, &thread_ctx->tree, &thread_ctx->idx_leaf, thread_ctx->sm , thread_ctx->pk, thread_ctx->m, thread_ctx->mlen, &ctx);
+    hash_message(thread_ctx->mhash, &thread_ctx->tree, &thread_ctx->idx_leaf, thread_ctx->sm, thread_ctx->pk, thread_ctx->m, thread_ctx->mlen, &ctx);
     thread_ctx->sm += SPX_N;
-
     set_tree_addr(thread_ctx->wots_addr, thread_ctx->tree);
     set_keypair_addr(thread_ctx->wots_addr, thread_ctx->idx_leaf);
 
     /* Sign the message hash using FORS. */
     fors_sign(thread_ctx->sm, thread_ctx->root, thread_ctx->mhash, &ctx, thread_ctx->wots_addr);
-    
+    thread_ctx->sm += SPX_FORS_BYTES;
+
+    thread_ctx->smlen += SPX_FORS_BYTES + SPX_N;
+
     return 0;
 }
 

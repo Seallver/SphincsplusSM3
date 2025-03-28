@@ -27,7 +27,7 @@
 #define SPX_ADDR_BYTES 32
 
 /* TSS */
-#define NUMBER_OF_THREADS SPX_D -2 + 1 //线程数目，注意需要加上TTP
+#define NUMBER_OF_THREADS SPX_D - 2 + 1 //线程数目，注意需要加上TTP
 #define PLAYERS NUMBER_OF_THREADS - 1 //参与方数
 #define THRESHOLD PLAYERS - 7 //门限数
 

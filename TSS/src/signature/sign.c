@@ -128,6 +128,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
 
     /* Derive the message digest and leaf index from R, PK and M. */
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
+    
     sig += SPX_N;
 
     set_tree_addr(wots_addr, tree);
@@ -135,6 +136,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
 
     /* Sign the message hash using FORS. */
     fors_sign(sig, root, mhash, &ctx, wots_addr);
+
     sig += SPX_FORS_BYTES;
 
     for (i = 0; i < SPX_D; i++) {

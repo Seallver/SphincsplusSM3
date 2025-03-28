@@ -93,7 +93,7 @@ void presign_player_p2ttp_shards(thread_ctx* ctx) {
     Send_Msg(ctx->public_channel_list, ctx->tid, 0, data, data_len);
 }
 
-void presign_ttp_recv_shards(thread_ctx* thread_ctx, BIGNUM* sk) {
+void ttp_recv_lagrange_shards(thread_ctx* thread_ctx, BIGNUM* sk) {
     BIGNUM** shards = (BIGNUM**)malloc(sizeof(BIGNUM*) * THRESHOLD);
     for (int i = 0;i < THRESHOLD;i++) {
         Msg* shards_msg = (Msg*)malloc(sizeof(Msg));
@@ -137,21 +137,28 @@ void presign_player_recv_seed(thread_ctx* ctx) {
 }
 
 void sign_bc_sig_shards(thread_ctx* ctx, const unsigned char* sig_shards) {
-    Send_Msg(ctx->public_channel_list, 0, -1, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);    
+    Send_Msg(ctx->public_channel_list, ctx->tid, -1, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);    
 }
 
-
-
-void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards,int *from) {
+void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards) {
     Msg* msg = (Msg*)malloc(sizeof(Msg));
     Recv_Msg(ctx->self_channel, msg);
     unsigned char* data = msg->data;
     size_t data_len = msg->data_len;
     memcpy(sig_shards, data, data_len);
-    *from = msg->from;
 }
 
+void sign_p2p_root(thread_ctx* ctx, int to) {
+    Send_Msg(ctx->public_channel_list, ctx->tid, to, ctx->root, SPX_N);
+}
 
+void sign_recv_root(thread_ctx* ctx) {
+    Msg* msg = (Msg*)malloc(sizeof(Msg));
+    Recv_Msg(ctx->self_channel, msg);
+    unsigned char* data = msg->data;
+    size_t data_len = msg->data_len;
+    memcpy(ctx->root, data, data_len);
+}
 
 
 

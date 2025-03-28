@@ -18,6 +18,12 @@ void keygen_ttp_bc_pk(thread_ctx* thread_ctx, const unsigned char* pk);
 //参与方接收pk
 void keygen_recv_pk(thread_ctx* thread_ctx);
 
+//参与方向TTP发送lagrange份额
+void presign_player_p2ttp_shards(thread_ctx* ctx);
+
+//TTP接收lagrange份额
+void ttp_recv_lagrange_shards(thread_ctx* thread_ctx, BIGNUM* sk);
+
 //TTP广播R
 void presign_ttp_bc_R(thread_ctx* thread_ctx, unsigned char* R);
 
@@ -34,7 +40,13 @@ void presign_player_recv_seed(thread_ctx* ctx);
 void sign_bc_sig_shards(thread_ctx*ctx, const unsigned char *sig_shards);
 
 //门限方接收签名份额
-void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards,int *from);
+void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards);
+
+//门限方向下一个门限层发送root
+void sign_p2p_root(thread_ctx* ctx, int to);
+
+//门限方接收root
+void sign_recv_root(thread_ctx* ctx);
 
 // 发送消息(小于0的时候认为是广播)
 void Send_Msg(ThreadSafeQueue* queue, int from, int to, const unsigned char* data, size_t data_len);

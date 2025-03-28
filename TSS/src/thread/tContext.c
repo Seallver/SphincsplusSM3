@@ -8,6 +8,7 @@ int init_ctx(thread_ctx* ctx, int tid,  ThreadSafeQueue* channel, ThreadSafeQueu
     ctx->mout = malloc(SPX_BYTES + SPX_MLEN);
     ctx->tid = tid;
     ctx->mlen = SPX_MLEN;
+    ctx->smlen = 0;
 
     memset(ctx->wots_addr, 0, sizeof(ctx->wots_addr));
     memset(ctx->tree_addr, 0, sizeof(ctx->tree_addr));
