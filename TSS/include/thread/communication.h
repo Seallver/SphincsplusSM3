@@ -4,10 +4,13 @@
 void keygen_player_p2p_shares(thread_ctx* thread_ctx, BIGNUM** shares);
 
 //参与方接收share_shards，并聚合成share
-void keygen_player_recv_shares(thread_ctx* thread_ctx);
+void keygen_player_recv_shares(thread_ctx* thread_ctx, BN_CTX* BNctx);
+
+//参与方任意两方之间协商随机数
+void keygen_randome_agreement(thread_ctx* thread_ctx, BN_CTX* BNctx);
 
 //参与方向TTP发送shards
-void keygen_player_p2ttp_shards(thread_ctx* thread_ctx, BIGNUM* shards);
+void keygen_player_p2ttp_shards(thread_ctx* thread_ctx, BIGNUM* shards, BN_CTX* BNctx);
 
 // TTP接收shards,并聚合成私钥
 void keygen_ttp_recv_shards(thread_ctx* thread_ctx, BIGNUM* sk);

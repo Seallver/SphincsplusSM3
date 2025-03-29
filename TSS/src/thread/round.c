@@ -3,6 +3,8 @@
 
 //互斥锁，调试用输出函数
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+
 void print_char(unsigned char* chr, int len, int tid) {
     pthread_mutex_lock(&mutex);
     printf("Thread %d: \t", tid);
@@ -58,10 +60,16 @@ void keygen_round_player(thread_ctx* thread_ctx) {
     keygen_player_p2p_shares(thread_ctx, tmp_shares);
 
     //接收共享份额并聚合
-    keygen_player_recv_shares(thread_ctx);
+    keygen_player_recv_shares(thread_ctx, BNctx);
+
+    //等待共享份额计算完毕
+    pthread_barrier_wait(&barrier);
+
+    //任意两方协商随机数
+    keygen_randome_agreement(thread_ctx, BNctx);
 
     //向TTP发送秘密份额
-    keygen_player_p2ttp_shards(thread_ctx, thread_ctx->vss_ctx->secret);
+    keygen_player_p2ttp_shards(thread_ctx, thread_ctx->vss_ctx->secret, BNctx);
 
     //接收公钥
     keygen_recv_pk(thread_ctx);

@@ -27,7 +27,7 @@ void keygen_player_p2p_shares(thread_ctx* thread_ctx, BIGNUM** shares) {
     }
 }
 
-void keygen_player_recv_shares(thread_ctx* thread_ctx) {
+void keygen_player_recv_shares(thread_ctx* thread_ctx, BN_CTX* BNctx) {
     BIGNUM** share_shards = (BIGNUM**)malloc(sizeof(BIGNUM*) * PLAYERS);
     for (int i = 0; i < PLAYERS;i++) {
         Msg* shards = (Msg*)malloc(sizeof(Msg));
@@ -42,15 +42,57 @@ void keygen_player_recv_shares(thread_ctx* thread_ctx) {
             return NULL;
         }
     }
-    aggregate_shares(thread_ctx->vss_ctx->share, share_shards);
+    aggregate_shares(thread_ctx->vss_ctx->share, share_shards, BNctx);
 }
 
-void keygen_player_p2ttp_shards(thread_ctx* thread_ctx, BIGNUM* shards) {
+void keygen_randome_agreement(thread_ctx* thread_ctx, BN_CTX* BNctx) {
+    int from = thread_ctx->tid;
+    int to;
+    //发送消息
+    for (int i = 1;i <= PLAYERS;i++) {
+        to = i;
+        if(to == from) continue;
+        size_t data_len = BN_num_bytes(thread_ctx->vss_ctx->random_list[i]);
+        unsigned char* data = (unsigned char*)malloc(data_len);
+        int len = BN_bn2bin(thread_ctx->vss_ctx->random_list[i], data);
+        Send_Msg(thread_ctx->public_channel_list, from, to, data, data_len);
+    }
+    //接收消息
+    BIGNUM *rji = BN_new();
+    for (int i = 0;i < PLAYERS - 1;i++) {
+        Msg* msg = (Msg*)malloc(sizeof(Msg));
+        Recv_Msg(thread_ctx->self_channel, msg);
+        unsigned char* data = msg->data;
+        size_t data_len = msg->data_len;
+        from = msg->from;
+        // 将字节数组转换为 BIGNUM
+        if (!BN_bin2bn(data, data_len, rji)) {
+            fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
+            BN_free(data); // 释放 BIGNUM
+            return NULL;
+        }
+        BN_mod_add(thread_ctx->vss_ctx->random_list[from], thread_ctx->vss_ctx->random_list[from], rji, prime, BNctx);
+    }
+}
+
+
+
+void keygen_player_p2ttp_shards(thread_ctx* thread_ctx, BIGNUM* shards, BN_CTX* BNctx) {
     int from = thread_ctx->tid;
     int to = 0;
-    size_t data_len = BN_num_bytes(shards);
+    BIGNUM* blinding_shard = BN_new();
+    BN_copy(blinding_shard, shards);
+    for (int i = 1;i <= PLAYERS;i++) {
+        if (i < thread_ctx->tid) {
+            BN_mod_add(blinding_shard, blinding_shard, thread_ctx->vss_ctx->random_list[i], prime, BNctx);
+        }
+        if (i > thread_ctx->tid) {
+            BN_mod_sub(blinding_shard, blinding_shard, thread_ctx->vss_ctx->random_list[i], prime, BNctx);
+        }
+    }
+    size_t data_len = BN_num_bytes(blinding_shard);
     unsigned char* data = (unsigned char*)malloc(data_len);
-    int len = BN_bn2bin(shards, data);
+    int len = BN_bn2bin(blinding_shard, data);
     Send_Msg(thread_ctx->public_channel_list, from, to, data, data_len);
 }
 

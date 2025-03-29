@@ -18,6 +18,7 @@ typedef struct
     BIGNUM* secret; // 秘密份额(即0次项)
     BIGNUM** coeffs; // 多项式系数
     BIGNUM* share; // 共享份额
+    BIGNUM** random_list; // 随机数列表
 } VSS_ctx;
 
 // 初始化VSS上下文，独立生成秘密和多项式系数
@@ -39,7 +40,7 @@ void evaluate_poly(BIGNUM *result, BIGNUM** coeffs,const BIGNUM *x,  BN_CTX *ctx
 void generate_shares(BIGNUM** shares, BIGNUM** coeffs,  BN_CTX *ctx);
 
 //聚合共享份额，计算出y_i
-void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards);
+void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards, BN_CTX* ctx);
 
 //生成门限签名聚合阶段的聚合分片y_i*l_i
 void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid);

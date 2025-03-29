@@ -18,6 +18,12 @@ void VSS_init(VSS_ctx* ctx) {
         exit(1);
     }
 
+    ctx->random_list = (BIGNUM**)malloc((PLAYERS + 1) *sizeof(BIGNUM*));
+    for (int i = 0; i < PLAYERS + 1; i++) {
+        ctx->random_list[i] = BN_new();
+        BN_rand_range(ctx->random_list[i], prime);
+    }
+
     //生成秘密多项式
     generate_secret(ctx->secret);
     generate_coefficients(ctx->coeffs, ctx->secret, BNctx);
@@ -85,8 +91,7 @@ void generate_shares(BIGNUM** shares, BIGNUM** coeffs, BN_CTX* ctx) {
     BN_free(index);
 }
 
-void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards) {
-    BN_CTX* ctx = BN_CTX_new();
+void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards, BN_CTX* ctx) {
     BIGNUM* tmp = BN_new();
     BN_zero(tmp);
     //累加f_i(j)得到y_j
@@ -95,7 +100,6 @@ void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards) {
     }
     BN_copy(shares, tmp);
     BN_free(tmp);
-    BN_CTX_free(ctx);
 }
 
 void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid) {
