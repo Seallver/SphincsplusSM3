@@ -19,7 +19,7 @@ void print_char(unsigned char* chr, int len, int tid) {
 
 void keygen_round_ttp(thread_ctx* thread_ctx) {
     //TTP无记忆
-    thread_ctx->vss_ctx = NULL;
+    thread_ctx->sss_ctx = NULL;
 
     //接收秘密份额并聚合为Seed
     BIGNUM* Seed = BN_new();
@@ -43,10 +43,10 @@ void keygen_round_ttp(thread_ctx* thread_ctx) {
 }
 
 void keygen_round_player(thread_ctx* thread_ctx) {
-    //声明并初始化VSS参数
-    VSS_ctx* vss_ctx = (VSS_ctx*)malloc(sizeof(VSS_ctx));
-    VSS_init(vss_ctx);
-    thread_ctx->vss_ctx = vss_ctx;
+    //声明并初始化SSS参数
+    SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
+    SSS_init(sss_ctx);
+    thread_ctx->sss_ctx = sss_ctx;
     
     BN_CTX* BNctx = BN_CTX_new();
     //生成共享份额
@@ -54,7 +54,7 @@ void keygen_round_player(thread_ctx* thread_ctx) {
     for(int i = 1; i < PLAYERS + 1; i++) {
         tmp_shares[i] = BN_new();
     }
-    generate_shares(tmp_shares, vss_ctx->coeffs, BNctx);
+    generate_shares(tmp_shares, sss_ctx->coeffs, BNctx);
 
     //p2p传递共享份额
     keygen_player_p2p_shares(thread_ctx, tmp_shares);
@@ -69,7 +69,7 @@ void keygen_round_player(thread_ctx* thread_ctx) {
     keygen_randome_agreement(thread_ctx, BNctx);
 
     //向TTP发送秘密份额
-    keygen_player_p2ttp_shards(thread_ctx, thread_ctx->vss_ctx->secret, BNctx);
+    keygen_player_p2ttp_shards(thread_ctx, thread_ctx->sss_ctx->secret, BNctx);
 
     //接收公钥
     keygen_recv_pk(thread_ctx);
@@ -84,12 +84,10 @@ void keygen_round_player(thread_ctx* thread_ctx) {
 
 
 void presign_round_player(thread_ctx* ctx) {
-    //初始化变量
-    unsigned long long smlen;
     //计算门限份额
     BIGNUM* shares = BN_new();
-    BN_copy(shares, ctx->vss_ctx->share);
-    generate_threshold_shards(ctx->vss_ctx->share, shares, ctx->tid);
+    BN_copy(shares, ctx->sss_ctx->share);
+    generate_threshold_shards(ctx->sss_ctx->share, shares, ctx->tid);
 
     //向第三方发送共享秘密份额
     presign_player_p2ttp_shards(ctx);
@@ -101,7 +99,9 @@ void presign_round_player(thread_ctx* ctx) {
     presign_player_recv_seed(ctx);
 
     //生成地址编码并签名FORS
-    tss_sign_FORS(ctx);
+    // tss_sign_FORS(ctx);
+    tss_sign_FORS(ctx->sk, ctx->pk, ctx->wots_addr, ctx->mhash, ctx->root, ctx->m, ctx->sm, &ctx->smlen, ctx->mlen, &ctx->tree, &ctx->idx_leaf);
+    ctx->sm += SPX_N + SPX_FORS_BYTES;
 
     BN_free(shares);
 
@@ -109,11 +109,11 @@ void presign_round_player(thread_ctx* ctx) {
 
 void sign_round_player(thread_ctx* ctx) {
     //计算出自己WOTS签名的地址
-    tss_gen_addr(ctx);
+    tss_gen_addr(ctx->tid, &ctx->tree, &ctx->idx_leaf, ctx->wots_addr, ctx->tree_addr);
 
     //初始化签名准备
     unsigned char* sk = malloc(SPX_SK_BYTES);
-    int len = BN_bn2bin(ctx->vss_ctx->secret, sk);
+    int len = BN_bn2bin(ctx->sss_ctx->secret, sk);
     memcpy(ctx->sk, sk, SPX_N);
     unsigned char* sig_shards = malloc(SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
 
@@ -122,7 +122,7 @@ void sign_round_player(thread_ctx* ctx) {
     //判断是否是第一层WOTS签名方
     if (ctx->tid == threshold[0]) {
         //生成签名
-        tss_sign_WOTS(ctx, sig_shards);
+        tss_sign_WOTS(ctx->sk, ctx->pk, sig_shards, ctx->root, ctx->wots_addr, ctx->tree_addr, ctx->idx_leaf);
         memcpy(ctx->sm, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
         ctx->sm += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
         ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
@@ -151,7 +151,7 @@ void sign_round_player(thread_ctx* ctx) {
             //接收root
             sign_recv_root(ctx);
             //签名，生成自己的签名份额并聚合
-            tss_sign_WOTS(ctx, sig_shards);
+            tss_sign_WOTS(ctx->sk, ctx->pk, sig_shards, ctx->root, ctx->wots_addr, ctx->tree_addr, ctx->idx_leaf);
             memcpy(ctx->sm, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
             ctx->sm += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
             ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
@@ -215,14 +215,16 @@ void sign_round_ttp(thread_ctx* ctx) {
     presign_ttp_bc_FORS_seed(ctx, fors_seed);
 
     //计算对顶层签名所需要的地址
-    tss_gen_ttp_addr(ctx, R);
+    tss_gen_ttp_addr(ctx->pk, ctx->mhash, ctx->m, ctx->mlen,
+        &ctx->tree, &ctx->idx_leaf, ctx->wots_addr, ctx->tree_addr, R);
 
     //接收顶层root为签名做准备
     sign_recv_root(ctx);
 
     //生成顶层签名份额
     unsigned char* sig_shards = malloc(SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
-    tss_sign_WOTS_ttp(ctx, sig_shards, sk);
+    tss_sign_WOTS_ttp(ctx->pk, ctx->root, ctx->wots_addr,
+        ctx->tree_addr, ctx->idx_leaf, sig_shards, sk);
 
     //广播顶层签名份额
     sign_bc_sig_shards(ctx, sig_shards);

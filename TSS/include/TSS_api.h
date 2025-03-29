@@ -64,18 +64,24 @@ int tss_gen_R(unsigned char* R, const uint8_t* m, const uint8_t* sk);
 int tss_gen_FORS_seed(unsigned char* seed);
 
 //预签名阶段参与方生成FORS签名，并得到addr
-int tss_sign_FORS(thread_ctx* ctx);
+int tss_sign_FORS(unsigned char* sk, unsigned char* pk, uint32_t* wots_addr,
+    unsigned char* mhash, unsigned char* root, unsigned char* m, unsigned char* sm,
+    unsigned long long* smlen, unsigned long long mlen,
+    uint64_t* tree, uint32_t* idx_leaf);
 
 //签名阶段参与方生成WOTS签名
-int tss_sign_WOTS(thread_ctx* thread_ctx, unsigned char* sig);
+int tss_sign_WOTS(unsigned char* sk, unsigned char* pk, unsigned char* sig, unsigned char* root,
+    uint32_t *wots_addr, uint32_t *tree_addr, uint32_t idx_leaf);
 
 //最后一层WOTS签名交由TTP来完成
-int tss_sign_WOTS_ttp(thread_ctx* thread_ctx, unsigned char* sig, const unsigned char* sk);
+int tss_sign_WOTS_ttp(unsigned char* pk, unsigned char* root, uint32_t* wots_addr, uint32_t* tree_addr,
+    uint32_t idx_leaf, unsigned char* sig, const unsigned char* sk);
 
 //生成addr
-int tss_gen_addr(thread_ctx* ctx);
+int tss_gen_addr(int id, uint64_t* tree, uint32_t* idx_leaf, uint32_t* wots_addr, uint32_t* tree_addr);
 
 //生成TTP的addr
-int tss_gen_ttp_addr(thread_ctx* thread_ctx, const unsigned char* R);
+int tss_gen_ttp_addr(unsigned char* pk, unsigned char* mhash, unsigned char* m, unsigned long long mlen,
+    uint64_t* tree, uint32_t* idx_leaf, uint32_t* wots_addr, uint32_t* tree_addr, const unsigned char* R);
 
 #endif

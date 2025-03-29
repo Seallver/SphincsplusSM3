@@ -85,33 +85,37 @@ int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk, const unsigned
     return 0;
 }
 
-int tss_sign_FORS(thread_ctx* thread_ctx)
+
+int tss_sign_FORS(unsigned char* sk, unsigned char* pk, uint32_t* wots_addr,
+                   unsigned char* mhash, unsigned char* root, unsigned char* m, unsigned char* sm, 
+                   unsigned long long* smlen, unsigned long long mlen, 
+                   uint64_t *tree, uint32_t *idx_leaf)
 {
     spx_ctx ctx;
 
     unsigned char optrand[SPX_N];
 
-    memcpy(ctx.sk_seed, thread_ctx->sk, SPX_N);
-    memcpy(ctx.pub_seed, thread_ctx->pk, SPX_N);
+    memcpy(ctx.sk_seed, sk, SPX_N);
+    memcpy(ctx.pub_seed, pk, SPX_N);
 
     /* This hook allows the hash function instantiation to do whatever
        preparation or computation it needs, based on the public seed. */
     initialize_hash_function(&ctx);
 
-    set_type(thread_ctx->wots_addr, SPX_ADDR_TYPE_WOTS);
+    set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
 
     /* Derive the message digest and leaf index from R, PK and M. */
-    hash_message(thread_ctx->mhash, &thread_ctx->tree, &thread_ctx->idx_leaf, thread_ctx->sm, thread_ctx->pk, thread_ctx->m, thread_ctx->mlen, &ctx);
-    thread_ctx->sm += SPX_N;
-    set_tree_addr(thread_ctx->wots_addr, thread_ctx->tree);
-    set_keypair_addr(thread_ctx->wots_addr, thread_ctx->idx_leaf);
+    hash_message(mhash, tree, idx_leaf, sm, pk, m, mlen, &ctx);
+    sm += SPX_N;
+    set_tree_addr(wots_addr, *tree);
+    set_keypair_addr(wots_addr, *idx_leaf);
 
     /* Sign the message hash using FORS. */
-    fors_sign(thread_ctx->sm, thread_ctx->root, thread_ctx->mhash, &ctx, thread_ctx->wots_addr);
+    fors_sign(sm, root, mhash, &ctx, wots_addr);
 
-    thread_ctx->sm += SPX_FORS_BYTES;
+    sm += SPX_FORS_BYTES;
 
-    thread_ctx->smlen += SPX_FORS_BYTES + SPX_N;
+    *smlen += SPX_FORS_BYTES + SPX_N;
 
     return 0;
 }
@@ -140,63 +144,66 @@ int tss_gen_R(unsigned char* R, const uint8_t* m, const uint8_t* sk)
 int tss_gen_FORS_seed(unsigned char* seed) {
     randombytes(seed, SPX_N);
 }
-int tss_gen_addr(thread_ctx* ctx) {
-    for (int i = 0;i < ctx->tid;i++) {
-        set_layer_addr(ctx->tree_addr, i);
-        set_tree_addr(ctx->tree_addr, ctx->tree);
 
-        copy_subtree_addr(ctx->wots_addr, ctx->tree_addr);
-        set_keypair_addr(ctx->wots_addr, ctx->idx_leaf);
+int tss_gen_addr(int id, uint64_t *tree, uint32_t *idx_leaf, uint32_t* wots_addr, uint32_t* tree_addr){
+    for (int i = 0;i < id;i++) {
+        set_layer_addr(tree_addr, i);
+        set_tree_addr(tree_addr, *tree);
 
-        if (i == ctx->tid - 1) break;
-        ctx->idx_leaf = (ctx->tree & ((1 << SPX_TREE_HEIGHT) - 1));
-        ctx->tree = ctx->tree >> SPX_TREE_HEIGHT;
+        copy_subtree_addr(wots_addr, tree_addr);
+        set_keypair_addr(wots_addr, *idx_leaf);
+
+        if (i == id - 1) break;
+        *idx_leaf = (*tree & ((1 << SPX_TREE_HEIGHT) - 1));
+        *tree = *tree >> SPX_TREE_HEIGHT;
     }
 }
 
-int tss_gen_ttp_addr(thread_ctx* thread_ctx, const unsigned char*R) {
+int tss_gen_ttp_addr(unsigned char* pk, unsigned char* mhash, unsigned char* m, unsigned long long mlen,
+    uint64_t* tree, uint32_t* idx_leaf, uint32_t* wots_addr, uint32_t* tree_addr, const unsigned char* R) {
     spx_ctx spxctx;
-    set_type(thread_ctx->wots_addr, SPX_ADDR_TYPE_WOTS);
-    set_type(thread_ctx->tree_addr, SPX_ADDR_TYPE_HASHTREE);
-    memcpy(spxctx.pub_seed, thread_ctx->pk, SPX_N);
-    hash_message(thread_ctx->mhash, &thread_ctx->tree, &thread_ctx->idx_leaf, R, thread_ctx->pk, thread_ctx->m, thread_ctx->mlen, &spxctx);
-    set_tree_addr(thread_ctx->wots_addr, thread_ctx->tree);
-    set_keypair_addr(thread_ctx->wots_addr, thread_ctx->idx_leaf);
+    set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
+    set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
+    memcpy(spxctx.pub_seed, pk, SPX_N);
+    hash_message(mhash, tree, idx_leaf, R, pk, m, mlen, &spxctx);
+    set_tree_addr(wots_addr, *tree);
+    set_keypair_addr(wots_addr, *idx_leaf);
 
     for (int i = 0;i < SPX_D;i++) {
-        set_layer_addr(thread_ctx->tree_addr, i);
-        set_tree_addr(thread_ctx->tree_addr, thread_ctx->tree);
+        set_layer_addr(tree_addr, i);
+        set_tree_addr(tree_addr, *tree);
         
-        copy_subtree_addr(thread_ctx->wots_addr, thread_ctx->tree_addr);
-        set_keypair_addr(thread_ctx->wots_addr, thread_ctx->idx_leaf);
+        copy_subtree_addr(wots_addr, tree_addr);
+        set_keypair_addr(wots_addr, *idx_leaf);
 
         if (i == SPX_D - 1) break;
-        thread_ctx->idx_leaf = (thread_ctx->tree & ((1 << SPX_TREE_HEIGHT) - 1));
-        thread_ctx->tree = thread_ctx->tree >> SPX_TREE_HEIGHT;
+        *idx_leaf = (*tree & ((1 << SPX_TREE_HEIGHT) - 1));
+        *tree = *tree >> SPX_TREE_HEIGHT;
     }
 }
 
-
-int tss_sign_WOTS(thread_ctx* thread_ctx,unsigned char * sig)
-{
-    spx_ctx ctx;
-    memcpy(ctx.sk_seed, thread_ctx->sk, SPX_N);
-    memcpy(ctx.pub_seed, thread_ctx->pk, SPX_N);
-
-    initialize_hash_function(&ctx);
-
-    merkle_sign(sig, thread_ctx->root, &ctx, thread_ctx->wots_addr, thread_ctx->tree_addr, thread_ctx->idx_leaf);
-}
-
-int tss_sign_WOTS_ttp(thread_ctx* thread_ctx, unsigned char * sig, const unsigned char* sk)
+int tss_sign_WOTS(unsigned char *sk, unsigned char *pk, unsigned char *sig, unsigned char *root, 
+                 uint32_t *wots_addr, uint32_t *tree_addr,  uint32_t idx_leaf)
 {
     spx_ctx ctx;
     memcpy(ctx.sk_seed, sk, SPX_N);
-    memcpy(ctx.pub_seed, thread_ctx->pk, SPX_N);
+    memcpy(ctx.pub_seed, pk, SPX_N);
 
     initialize_hash_function(&ctx);
 
-    merkle_sign(sig, thread_ctx->root, &ctx, thread_ctx->wots_addr, thread_ctx->tree_addr, thread_ctx->idx_leaf);
+    merkle_sign(sig, root, &ctx, wots_addr, tree_addr, idx_leaf);
+}
+
+int tss_sign_WOTS_ttp(unsigned char* pk, unsigned char* root, uint32_t* wots_addr,
+    uint32_t* tree_addr, uint32_t idx_leaf, unsigned char* sig, const unsigned char* sk)
+{
+    spx_ctx ctx;
+    memcpy(ctx.sk_seed, sk, SPX_N);
+    memcpy(ctx.pub_seed, pk, SPX_N);
+
+    initialize_hash_function(&ctx);
+
+    merkle_sign(sig, root, &ctx, wots_addr, tree_addr, idx_leaf);
 }
 
 

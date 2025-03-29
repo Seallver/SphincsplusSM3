@@ -42,7 +42,7 @@ void keygen_player_recv_shares(thread_ctx* thread_ctx, BN_CTX* BNctx) {
             return NULL;
         }
     }
-    aggregate_shares(thread_ctx->vss_ctx->share, share_shards, BNctx);
+    aggregate_shares(thread_ctx->sss_ctx->share, share_shards, BNctx);
 }
 
 void keygen_randome_agreement(thread_ctx* thread_ctx, BN_CTX* BNctx) {
@@ -52,9 +52,9 @@ void keygen_randome_agreement(thread_ctx* thread_ctx, BN_CTX* BNctx) {
     for (int i = 1;i <= PLAYERS;i++) {
         to = i;
         if(to == from) continue;
-        size_t data_len = BN_num_bytes(thread_ctx->vss_ctx->random_list[i]);
+        size_t data_len = BN_num_bytes(thread_ctx->sss_ctx->random_list[i]);
         unsigned char* data = (unsigned char*)malloc(data_len);
-        int len = BN_bn2bin(thread_ctx->vss_ctx->random_list[i], data);
+        int len = BN_bn2bin(thread_ctx->sss_ctx->random_list[i], data);
         Send_Msg(thread_ctx->public_channel_list, from, to, data, data_len);
     }
     //接收消息
@@ -71,7 +71,7 @@ void keygen_randome_agreement(thread_ctx* thread_ctx, BN_CTX* BNctx) {
             BN_free(data); // 释放 BIGNUM
             return NULL;
         }
-        BN_mod_add(thread_ctx->vss_ctx->random_list[from], thread_ctx->vss_ctx->random_list[from], rji, prime, BNctx);
+        BN_mod_add(thread_ctx->sss_ctx->random_list[from], thread_ctx->sss_ctx->random_list[from], rji, prime, BNctx);
     }
 }
 
@@ -84,10 +84,10 @@ void keygen_player_p2ttp_shards(thread_ctx* thread_ctx, BIGNUM* shards, BN_CTX* 
     BN_copy(blinding_shard, shards);
     for (int i = 1;i <= PLAYERS;i++) {
         if (i < thread_ctx->tid) {
-            BN_mod_add(blinding_shard, blinding_shard, thread_ctx->vss_ctx->random_list[i], prime, BNctx);
+            BN_mod_add(blinding_shard, blinding_shard, thread_ctx->sss_ctx->random_list[i], prime, BNctx);
         }
         if (i > thread_ctx->tid) {
-            BN_mod_sub(blinding_shard, blinding_shard, thread_ctx->vss_ctx->random_list[i], prime, BNctx);
+            BN_mod_sub(blinding_shard, blinding_shard, thread_ctx->sss_ctx->random_list[i], prime, BNctx);
         }
     }
     size_t data_len = BN_num_bytes(blinding_shard);
@@ -129,9 +129,9 @@ void keygen_recv_pk(thread_ctx* thread_ctx) {
 }
 
 void presign_player_p2ttp_shards(thread_ctx* ctx) {
-    size_t data_len = BN_num_bytes(ctx->vss_ctx->share);
+    size_t data_len = BN_num_bytes(ctx->sss_ctx->share);
     unsigned char* data = (unsigned char*)malloc(data_len);
-    int len = BN_bn2bin(ctx->vss_ctx->share, data);
+    int len = BN_bn2bin(ctx->sss_ctx->share, data);
     Send_Msg(ctx->public_channel_list, ctx->tid, 0, data, data_len);
 }
 

@@ -1,4 +1,4 @@
-PARAMS = sphincs-SM3-128f
+PARAMS = sphincs-SM3-256s
 THASH = simple
 
 INCLUDE_DIR = include
@@ -36,7 +36,7 @@ TSS_SOURCES = $(SOURCES) \
               $(BASE_SRCDIR)/thread/tContext.c \
               $(BASE_SRCDIR)/thread/round.c \
               $(BASE_SRCDIR)/thread/logic.c \
-              $(BASE_SRCDIR)/crypto/VSS.c \
+              $(BASE_SRCDIR)/crypto/SSS.c \
 
 HEADERS = include/params/params.h \
           include/signature/address.h \
@@ -60,7 +60,7 @@ TSS_HEADERS = $(HEADERS) \
           include/thread/tContext.h \
           include/thread/round.h \
           include/thread/logic.h \
-          include/crypto/VSS.h \
+          include/crypto/SSS.h \
           include/params/globals.h \
 
 LDLIBS += -lpthread -lcrypto
@@ -74,7 +74,7 @@ TESTS = test/fors \
 
 BENCHMARK = test/benchmark/benchmark
 
-TSS = test/TSS
+TSS = test/TSS-multi-thread
 
 
 # 构建规则
@@ -94,7 +94,7 @@ benchmark: print_params $(BENCHMARK:=.exec)
 
 tss: $(TSS)
 
-TSS: $(TSS:=.exec)
+TSS: print_params $(TSS:=.exec)
 
 # 主目标构建
 PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
@@ -114,7 +114,7 @@ test/%.exec: test/%
 	@$<
 
 # TSS测试构建
-test/TSS: test/TSS.c $(TSS_SOURCES) $(TSS_HEADERS)
+test/TSS-multi-thread: test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
 	@ $(CC) $(CFLAGS) -o $@ $(TSS_SOURCES) $< $(LDLIBS)
 
 clean:

@@ -3,11 +3,11 @@
 
 #include <pthread.h>
 #include "ThreadSafeQueue.h"
-#include "VSS.h"
+#include "SSS.h"
 
 #define SPX_MLEN 32
 
-struct VSS_ctx;
+struct SSS_ctx;
 
 typedef struct {
     unsigned int tid;
@@ -35,8 +35,8 @@ typedef struct {
     ThreadSafeQueue* self_channel;
     ThreadSafeQueue* public_channel_list;
 
-    //VSS上下文
-    VSS_ctx* vss_ctx;  //for player , 无记忆 TTP 无法保留参数
+    //SSS上下文
+    SSS_ctx* sss_ctx;  //for player , 无记忆 TTP 无法保留参数
 } thread_ctx;
 
 //初始化线程上下文

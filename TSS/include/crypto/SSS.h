@@ -1,5 +1,5 @@
-#ifndef VSS_H
-#define VSS_H
+#ifndef SSS_H
+#define SSS_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,10 +19,10 @@ typedef struct
     BIGNUM** coeffs; // 多项式系数
     BIGNUM* share; // 共享份额
     BIGNUM** random_list; // 随机数列表
-} VSS_ctx;
+} SSS_ctx;
 
-// 初始化VSS上下文，独立生成秘密和多项式系数
-void VSS_init(VSS_ctx* ctx);
+// 初始化SSS上下文，独立生成秘密和多项式系数
+void SSS_init(SSS_ctx* ctx);
 
 //生成随机秘密
 void generate_secret(BIGNUM* secret);

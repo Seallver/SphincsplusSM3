@@ -1,8 +1,8 @@
-#include "VSS.h"
+#include "SSS.h"
 
 
 
-void VSS_init(VSS_ctx* ctx) {
+void SSS_init(SSS_ctx* ctx) {
     BN_CTX *BNctx = BN_CTX_new();
 
     ctx->secret = BN_new();
@@ -14,7 +14,7 @@ void VSS_init(VSS_ctx* ctx) {
     
     if (!ctx->coeffs || !ctx->secret || !ctx->share) {
         // 内存分配失败
-        fprintf(stderr, "VSS_init: Memory allocation failed\n");
+        fprintf(stderr, "SSS_init: Memory allocation failed\n");
         exit(1);
     }
 
