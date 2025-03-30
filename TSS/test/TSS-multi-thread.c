@@ -6,9 +6,10 @@
 #include "logic.h"
 
 BIGNUM* prime;
-BIGNUM* generator;
 pthread_barrier_t barrier;
 int threshold[PLAYERS];
+#define SPX_MLEN 512
+#define NUMBER_OF_THREADS PLAYERS+1 //线程数目，注意需要加上TTP
 
 // 比较函数（升序排序）
 int compare_asc(const void *a, const void *b) {
@@ -29,7 +30,7 @@ void print_sigma(const unsigned char* sigma) {
 
     printf("\tSig_FORS:\t");
     for (int i = 0; i < SPX_FORS_BYTES; i++) {
-        if (i >= 0 && i % 64 == 0) printf("\n\t\t\t");
+        if (i > 0 && i % 64 == 0) printf("\n\t\t\t");
         printf("%02x", sigma[i]);
     }
     printf("\n");
@@ -48,6 +49,7 @@ void print_sigma(const unsigned char* sigma) {
     }
     printf("\n");
     printf("}\n");
+    printf("SIGMA size: %.2f KB\n", SPX_BYTES / 1024.0);
 }
 
 int main(void)
@@ -59,7 +61,6 @@ int main(void)
     int ret; //线程返回值
     unsigned char* M = malloc(SPX_MLEN); //消息明文
 
-    //定义全局变量
     //生成安全素数
     prime = BN_new();
     init_crypto_params(prime);

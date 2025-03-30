@@ -124,7 +124,7 @@ void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid) {
 
         //计算分式x_j/(x_j-x_k)
         BN_mod_mul(tmp, tmp, x_j, prime, ctx);
-
+        
         //累乘到总分式上
         BN_mod_mul(l_k, l_k, tmp, prime, ctx);
     }

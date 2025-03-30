@@ -3,7 +3,7 @@
 #include <openssl/bn.h>
 #include <pthread.h>
 #include "params.h"
-#define SPX_MLEN 32
+
 //声明全局变量p，代表所有参与方均已知
 extern BIGNUM* prime;
 

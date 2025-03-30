@@ -217,7 +217,7 @@ void Send_Msg(ThreadSafeQueue* queuelist, int from, int to, const unsigned char*
 
 // 广播消息(不会对自己和TTP广播)
 void Broadcast_Msg(ThreadSafeQueue* queuelist, Msg* msg, int from) {
-    for (int i = 1; i < NUMBER_OF_THREADS; i++) {
+    for (int i = 1; i <= PLAYERS; i++) {
         Msg* newMsg = (Msg*)malloc(sizeof(Msg));
         *newMsg = *msg;
         if (i != from) {

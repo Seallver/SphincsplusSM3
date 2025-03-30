@@ -47,7 +47,18 @@
         "logic.h": "c",
         "globals.h": "c",
         "stdbool.h": "c",
-        "utilsx1.h": "c"
+        "utilsx1.h": "c",
+        "cstdlib": "c",
+        "buffer": "c",
+        "io_context": "c",
+        "sss.h": "c",
+        "net_settings.h": "c",
+        "keygen_connection.h": "c",
+        "in.h": "c",
+        "keygen_handle.h": "c",
+        "socket.h": "c",
+        "internet": "c",
+        "socket": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

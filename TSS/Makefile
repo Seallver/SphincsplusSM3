@@ -63,6 +63,29 @@ TSS_HEADERS = $(HEADERS) \
           include/crypto/SSS.h \
           include/params/globals.h \
 
+NET_HEADERS = $(HEADERS) \
+          include/TSS_api.h \
+          include/crypto/SSS.h \
+          include/params/globals.h \
+          network/handle/keygen_handle.h \
+          network/handle/sign_handle.h \
+          network/net_settings.h \
+          network/connection/keygen_connection.h \
+          network/connection/sign_connection.h \
+
+
+          
+
+NET_SOURCES = $(SOURCES) \
+              $(BASE_SRCDIR)/crypto/SSS.c \
+              $(BASE_SRCDIR)/signature/TSS_sign.c \
+              network/handle/keygen_handle.c \
+              network/handle/sign_handle.c \
+              network/connection/keygen_connection.c \
+              network/connection/sign_connection.c
+
+
+
 LDLIBS += -lpthread -lcrypto
 
 DET_SOURCES = $(SOURCES:$(BASE_SRCDIR)/utils/randombytes.%=$(BASE_SRCDIR)/utils/rng.%)
@@ -75,6 +98,13 @@ TESTS = test/fors \
 BENCHMARK = test/benchmark/benchmark
 
 TSS = test/TSS-multi-thread
+
+net = network/keygen/client \
+      network/keygen/TTP \
+#       network/sign/client \
+#       network/sign/server \
+#       network/sign/TTP
+
 
 
 # 构建规则
@@ -96,6 +126,10 @@ tss: $(TSS)
 
 TSS: print_params $(TSS:=.exec)
 
+nets: $(net)
+
+NETS: $(net:=.exec)
+
 # 主目标构建
 PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
 	@ $(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< -lcrypto
@@ -113,17 +147,28 @@ test/%: test/%.c $(SOURCES) $(HEADERS)
 test/%.exec: test/%
 	@$<
 
-# TSS测试构建
+# TSS多线程测试构建
 test/TSS-multi-thread: test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
 	@ $(CC) $(CFLAGS) -o $@ $(TSS_SOURCES) $< $(LDLIBS)
+
+# 网络测试构建
+network/keygen/%: network/keygen/%.c $(NET_SOURCES) $(NET_HEADERS)
+	@ $(CC) $(CFLAGS) -o $@ $(NET_SOURCES) $< $(LDLIBS)
+
+
+network/sign/%: network/sign/%.c $(NET_SOURCES) $(NET_HEADERS)
+	@ $(CC) $(CFLAGS) -o $@ $(NET_SOURCES) $< $(LDLIBS)
+
 
 clean:
 	-$(RM) $(TESTS)
 	-$(RM) $(BENCHMARK)
 	-$(RM) $(TSS)
+	-$(RM) $(net)
 	-$(RM) PQCgenKAT_sign
 	-$(RM) PQCsignKAT_*.rsp
 	-$(RM) PQCsignKAT_*.req
+
 
 print_params:
 	@params_len=$$(echo -n "$(PARAMS)" | wc -c); \
