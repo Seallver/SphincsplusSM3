@@ -5,10 +5,6 @@
 #include "ThreadSafeQueue.h"
 #include "SSS.h"
 
-#define SPX_MLEN 32
-
-struct SSS_ctx;
-
 typedef struct {
     unsigned int tid;
 
@@ -40,7 +36,7 @@ typedef struct {
 } thread_ctx;
 
 //初始化线程上下文
-int init_ctx(thread_ctx* ctx, int tid, ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list);
+int init_ctx(thread_ctx* ctx, int tid, unsigned long long mlen,ThreadSafeQueue* channel, ThreadSafeQueue* public_channel_list);
 
 //签名的时候输入明文
 int input_m(thread_ctx* ctx, unsigned char* M);

@@ -8,6 +8,7 @@
 BIGNUM* prime;
 pthread_barrier_t barrier;
 int threshold[PLAYERS];
+
 #define SPX_MLEN 512
 #define NUMBER_OF_THREADS PLAYERS+1 //线程数目，注意需要加上TTP
 
@@ -77,7 +78,7 @@ int main(void)
 
     //每个线程的ctx初始化
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {
-        if (init_ctx(&ctx[i], i, &channel[i], channel) != 0) {
+        if (init_ctx(&ctx[i], i, SPX_MLEN ,&channel[i], channel) != 0) {
             printf("Failed to initialize context\n");
             return -1;
         }

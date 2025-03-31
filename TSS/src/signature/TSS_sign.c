@@ -120,9 +120,8 @@ int tss_sign_FORS(unsigned char* sk, unsigned char* pk, uint32_t* wots_addr,
     return 0;
 }
 
-int tss_gen_R(unsigned char* R, const uint8_t* m, const uint8_t* sk)
+int tss_gen_R(unsigned char* R, const uint8_t* m,unsigned long long mlen , const uint8_t* sk)
 {
-    size_t mlen = SPX_MLEN;
     spx_ctx ctx;
     const unsigned char *sk_prf = sk + SPX_N;
     const unsigned char *pk = sk + 2*SPX_N;

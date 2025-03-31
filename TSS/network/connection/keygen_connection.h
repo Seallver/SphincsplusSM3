@@ -2,7 +2,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include "../handle/keygen_handle.h"
+#include <errno.h>
+#include "keygen_handler.h"
+#include "net_context.h"
 
 #define BUFFER_SIZE 4096
 #define MAX_CLIENTS PLAYERS
@@ -10,14 +12,8 @@
 #define MAX_RETRIES 5 // 最大重试次数
 #define RETRY_DELAY 3  // 每次重试间隔（秒）
 
-typedef struct {
-    int party_id;
-    char* local_ip;
-    int port;
-}Conn;
-
 //保持端口监听
-void listen_local_port(Conn* conn);
+void listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handler_func)(KeygenNet_ctx*,int));
 
 //创建p2p连接
-void create_connection_p2p(char* ip, int port, Conn* conn);
+void create_connection_p2p(char* ip, int port, KeygenNet_ctx* ctx, int (*handler_func)(KeygenNet_ctx*,int));

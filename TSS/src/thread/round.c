@@ -202,7 +202,7 @@ void sign_round_ttp(thread_ctx* ctx) {
 
     //生成随机数R
     unsigned char* R = malloc(SPX_BYTES);
-    tss_gen_R(R, ctx->m, sk);
+    tss_gen_R(R, ctx->m, ctx->mlen, sk);
     
     //广播R
     presign_ttp_bc_R(ctx, R);

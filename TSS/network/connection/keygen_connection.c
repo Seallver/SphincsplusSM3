@@ -1,7 +1,7 @@
 #include "keygen_connection.h"
-#include <errno.h>
+
 //监听本机端口
-void listen_local_port(Conn* conn) {
+void listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handler_func)(KeygenNet_ctx* ,int)) {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
         perror("socket failed");
@@ -19,7 +19,7 @@ void listen_local_port(Conn* conn) {
     struct sockaddr_in server_addr = {
         .sin_family = AF_INET,
         .sin_addr.s_addr = INADDR_ANY,
-        .sin_port = htons(conn->port)
+        .sin_port = htons(ctx->port)
     };
 
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
@@ -34,11 +34,10 @@ void listen_local_port(Conn* conn) {
         exit(EXIT_FAILURE);
     }
 
-    printf("party %d listening on port %d...\n", conn->party_id, conn->port);
+    printf("party %d listening on port %d...\n", ctx->party_id, ctx->port);
 
-    int recv_times = conn->party_id - 1;
     // 改进：循环接受多个连接
-    while (recv_times--) {
+    while (conn_numbers--) {
         struct sockaddr_in client_addr;
         socklen_t addr_len = sizeof(client_addr);
         int client_sock = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len);
@@ -48,20 +47,20 @@ void listen_local_port(Conn* conn) {
         }
 
         printf("[P%d] New connection from %s:%d\n", 
-              conn->party_id, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+              ctx->party_id, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
         
-        // 这里应该创建新线程/进程处理连接
+        int ret = handler_func(ctx, client_sock);
+        if (ret) {
+            printf("keygen handler error\n");
+        }
         
-    
-
-        close(client_sock); // 示例中立即关闭，实际应持久化连接
+        
     }
-    
     // 通常不会执行到这里
     close(server_fd);
 }
 
-void create_connection_p2p(char* dst_ip, int dst_port, Conn* conn) {
+void create_connection_p2p(char* dst_ip, int dst_port, KeygenNet_ctx* ctx, int (*handler_func)(KeygenNet_ctx*,int)) {
     int sockfd = -1;
     struct sockaddr_in servaddr, local_addr;
     
@@ -80,18 +79,17 @@ void create_connection_p2p(char* dst_ip, int dst_port, Conn* conn) {
     }
 
     // 绑定到指定本地端口（保持原逻辑不变）
-    if (conn->port > 0) {
+    if (ctx->port > 0) {
         memset(&local_addr, 0, sizeof(local_addr));
         local_addr.sin_family = AF_INET;
         local_addr.sin_addr.s_addr = htonl(INADDR_ANY); // 保持INADDR_ANY不变
-        local_addr.sin_port = htons(conn->port);        // 使用传入的端口
+        local_addr.sin_port = htons(ctx->port);        // 使用传入的端口
         
         if (bind(sockfd, (struct sockaddr*)&local_addr, sizeof(local_addr)) < 0) {
             perror("bind failed");
             close(sockfd);
             exit(EXIT_FAILURE);
         }
-        printf("Bound to local port %d\n", conn->port);
     }
     
     // 设置目标地址（保持原逻辑不变）
@@ -111,14 +109,14 @@ void create_connection_p2p(char* dst_ip, int dst_port, Conn* conn) {
     for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         // 尝试连接
         if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0) {
-            printf("Connected successfully!\n");
+            // printf("Connected successfully!\n");
             break;
         }
         
         // 连接失败处理
         if (attempt < MAX_RETRIES) {
-            printf("Connection failed (attempt %d/%d), retrying in %d sec...\n", 
-                  attempt, MAX_RETRIES, RETRY_DELAY);
+            // printf("Connection failed (attempt %d/%d), retrying in %d sec...\n", 
+            //       attempt, MAX_RETRIES, RETRY_DELAY);
             sleep(RETRY_DELAY);
         } else {
             fprintf(stderr, "Max retries reached. Connection failed: %s\n", strerror(errno));
@@ -126,35 +124,16 @@ void create_connection_p2p(char* dst_ip, int dst_port, Conn* conn) {
             exit(EXIT_FAILURE);
         }
     }
+
     
-    // 发送数据（完整发送保证）
-    const char *message = "helloworld";
-    size_t total = strlen(message);
-    ssize_t sent = 0;
-    
-    while (sent < total) {
-        ssize_t n = send(sockfd, message + sent, total - sent, 0);
-        if (n <= 0) {
-            perror("send failed");
-            close(sockfd);
-            exit(EXIT_FAILURE);
-        }
-        sent += n;
+
+    int ret = handler_func(ctx, sockfd);
+    if (ret) {
+        printf("keygen handler error\n");
     }
-    printf("Sent %zd bytes: %s\n", sent, message);
-    
-    // 接收响应（可选，保持原注释状态）
-    /*
-    char buffer[BUFFER_SIZE] = {0};
-    ssize_t received = recv(sockfd, buffer, BUFFER_SIZE-1, 0);
-    if (received > 0) {
-        buffer[received] = '\0';
-        printf("Received: %s\n", buffer);
-    }
-    */
-    
+
     // 安全关闭连接
-    shutdown(sockfd, SHUT_RDWR); // 优雅关闭双向通信
-    close(sockfd);
-    printf("Connection closed\n");
+    shutdown(sockfd, SHUT_RDWR); // 关闭双向通信
+    
+    // printf("Connection closed\n");
 }

@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include "params.h"
-#include "tContext.h"
+#include "globals.h"
 
 #define CRYPTO_ALGNAME "SPHINCS+"
 
@@ -58,7 +58,7 @@ int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
 
 //用于预签名阶段TTP生成R
-int tss_gen_R(unsigned char* R, const uint8_t* m, const uint8_t* sk);
+int tss_gen_R(unsigned char* R, const uint8_t* m, unsigned long long mlen,const uint8_t* sk);
 
 //随机生成FORS的签名私钥
 int tss_gen_FORS_seed(unsigned char* seed);

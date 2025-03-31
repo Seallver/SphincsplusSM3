@@ -58,7 +58,14 @@
         "keygen_handle.h": "c",
         "socket.h": "c",
         "internet": "c",
-        "socket": "c"
+        "socket": "c",
+        "future": "c",
+        "keygen_handler.h": "c",
+        "executor": "c",
+        "errno.h": "c",
+        "keygen_netcontext.h": "c",
+        "inet.h": "c",
+        "net_context.h": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

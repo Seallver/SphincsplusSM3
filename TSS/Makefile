@@ -1,175 +1,134 @@
-PARAMS = sphincs-SM3-256s
-THASH = simple
+# ======================
+#  Build Configuration
+# ======================
+PARAMS  = sphincs-SM3-256s
+THASH   = simple
 
-INCLUDE_DIR = include
+# ================
+#  Include Paths
+# ================
+INCLUDE_DIR    = include
+NETWORK_DIR    = network
 INCLUDE_SUBDIRS = hash signature params utils thread crypto
+NETWORK_SUBDIRS = handler connection threadpool keygen sign
+INCLUDE_FLAGS  = -I$(INCLUDE_DIR) $(addprefix -I$(INCLUDE_DIR)/, $(INCLUDE_SUBDIRS)) \
+      -I$(NETWORK_DIR) $(addprefix -I$(NETWORK_DIR)/, $(NETWORK_SUBDIRS))
 
-path = $(addprefix -I, $(INCLUDE_DIR) $(foreach dir, $(INCLUDE_SUBDIRS), $(INCLUDE_DIR)/$(dir)))
+# ================
+#  Compiler Setup
+# ================
+CC      = /usr/bin/gcc
+CFLAGS  = -Qn -w -std=c99 -pthread -D_GNU_SOURCE \
+          -Wall -Wextra -Wpedantic -Wconversion -Wmissing-prototypes \
+          -g -O3 \
+          -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) \
+          $(INCLUDE_FLAGS)
+LDLIBS  = -lpthread -lcrypto
 
-CC = /usr/bin/gcc
-CFLAGS = -Qn -w -Wall -Wextra -Wpedantic -g -O3 -std=c99 \
-         -Wconversion -Wmissing-prototypes \
-         -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) \
-         -pthread -D_GNU_SOURCE \
-         $(path) \
-
-# 源文件路径重构
+# ================
+#  Source Groups
+# ================
 BASE_SRCDIR = src
-SOURCES = $(BASE_SRCDIR)/signature/address.c \
-          $(BASE_SRCDIR)/signature/merkle.c \
-          $(BASE_SRCDIR)/signature/wots.c \
-          $(BASE_SRCDIR)/signature/wotsx1.c \
-          $(BASE_SRCDIR)/signature/fors.c \
-          $(BASE_SRCDIR)/signature/sign.c \
-          $(BASE_SRCDIR)/utils/utils.c \
-          $(BASE_SRCDIR)/utils/utilsx1.c \
-          $(BASE_SRCDIR)/utils/randombytes.c \
-          $(BASE_SRCDIR)/hash/SM3.c \
-          $(BASE_SRCDIR)/hash/hash_SM3.c \
-          $(BASE_SRCDIR)/hash/thash_SM3_$(THASH).c \
 
+# -- Core SPHINCS+ Components --
+CORE_SOURCES = $(BASE_SRCDIR)/signature/address.c \
+               $(BASE_SRCDIR)/signature/merkle.c \
+               $(BASE_SRCDIR)/signature/wots.c \
+               $(BASE_SRCDIR)/signature/wotsx1.c \
+               $(BASE_SRCDIR)/signature/fors.c \
+               $(BASE_SRCDIR)/signature/sign.c
 
-TSS_SOURCES = $(SOURCES) \
-              $(BASE_SRCDIR)/signature/TSS_sign.c \
-              $(BASE_SRCDIR)/thread/ThreadSafeQueue.c \
-              $(BASE_SRCDIR)/thread/communication.c \
-              $(BASE_SRCDIR)/thread/tContext.c \
-              $(BASE_SRCDIR)/thread/round.c \
-              $(BASE_SRCDIR)/thread/logic.c \
-              $(BASE_SRCDIR)/crypto/SSS.c \
+# -- Utility Components --
+UTIL_SOURCES = $(BASE_SRCDIR)/utils/utils.c \
+               $(BASE_SRCDIR)/utils/utilsx1.c \
+               $(BASE_SRCDIR)/utils/randombytes.c
 
-HEADERS = include/params/params.h \
-          include/signature/address.h \
-          include/signature/fors.h \
-          include/signature/merkle.h \
-          include/signature/wots.h \
-          include/signature/wotsx1.h \
-          include/utils/utils.h \
-          include/utils/utilsx1.h \
-          include/utils/randombytes.h \
-          include/hash/hash.h \
-          include/hash/thash.h \
-          include/hash/SM3.h \
-          include/hash/SM3_offsets.h \
-          include/api.h \
-          
-TSS_HEADERS = $(HEADERS) \
-          include/TSS_api.h \
-          include/thread/ThreadSafeQueue.h \
-          include/thread/communication.h \
-          include/thread/tContext.h \
-          include/thread/round.h \
-          include/thread/logic.h \
-          include/crypto/SSS.h \
-          include/params/globals.h \
+# -- Hash Implementations --
+HASH_SOURCES = $(BASE_SRCDIR)/hash/SM3.c \
+               $(BASE_SRCDIR)/hash/hash_SM3.c \
+               $(BASE_SRCDIR)/hash/thash_SM3_$(THASH).c
 
-NET_HEADERS = $(HEADERS) \
-          include/TSS_api.h \
-          include/crypto/SSS.h \
-          include/params/globals.h \
-          network/handle/keygen_handle.h \
-          network/handle/sign_handle.h \
-          network/net_settings.h \
-          network/connection/keygen_connection.h \
-          network/connection/sign_connection.h \
+SOURCES      = $(CORE_SOURCES) $(UTIL_SOURCES) $(HASH_SOURCES)
+HEADERS      = $(wildcard include/*/*.h include/*.h)
 
+# ================
+#  TSS Components
+# ================
+TSS_SOURCES  = $(SOURCES) \
+               $(BASE_SRCDIR)/signature/TSS_sign.c \
+               $(BASE_SRCDIR)/thread/ThreadSafeQueue.c \
+               $(BASE_SRCDIR)/thread/communication.c \
+               $(BASE_SRCDIR)/thread/tContext.c \
+               $(BASE_SRCDIR)/thread/round.c \
+               $(BASE_SRCDIR)/thread/logic.c \
+               $(BASE_SRCDIR)/crypto/SSS.c
 
-          
+TSS_HEADERS  = $(HEADERS) include/TSS_api.h
 
-NET_SOURCES = $(SOURCES) \
-              $(BASE_SRCDIR)/crypto/SSS.c \
-              $(BASE_SRCDIR)/signature/TSS_sign.c \
-              network/handle/keygen_handle.c \
-              network/handle/sign_handle.c \
-              network/connection/keygen_connection.c \
-              network/connection/sign_connection.c
+# ================
+#  Network Components
+# ================
+NET_SOURCES  = $(SOURCES) \
+               $(BASE_SRCDIR)/crypto/SSS.c \
+               $(BASE_SRCDIR)/signature/TSS_sign.c \
+               network/handler/keygen_handler.c \
+               network/handler/sign_handler.c \
+               network/connection/keygen_connection.c \
+               network/connection/sign_connection.c  \
+               network/threadpool/condition.c \
+               network/threadpool/threadpool.c \
 
+NET_HEADERS = $(HEADERS) include/TSS_api.h \
+              $(wildcard network/*/*.h network/*.h)
 
-
-LDLIBS += -lpthread -lcrypto
-
-DET_SOURCES = $(SOURCES:$(BASE_SRCDIR)/utils/randombytes.%=$(BASE_SRCDIR)/utils/rng.%)
-DET_HEADERS = $(HEADERS:include/utils/randombytes.%=include/utils/rng.%)
-
-# 测试目标配置
-TESTS = test/fors \
-        test/spx
-
-BENCHMARK = test/benchmark/benchmark
-
-TSS = test/TSS-multi-thread
-
-net = network/keygen/client \
-      network/keygen/TTP \
-#       network/sign/client \
-#       network/sign/server \
-#       network/sign/TTP
-
-
-
-# 构建规则
-.PHONY: clean test benchmark
-
-default: PQCgenKAT_sign
+# ================
+#  Build Targets
+# ================
+.PHONY: all clean test benchmark tss nets print_params
 
 all: PQCgenKAT_sign tests benchmarks
 
-tests: $(TESTS)
+# -- Main Targets --
+PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(SOURCES:randombytes%=rng%) 
+	@$(CC) $(CFLAGS) -o $@ $^ -lcrypto
 
+# -- Test Targets --
+TESTS = test/fors test/spx
+$(TESTS): %: %.c $(SOURCES) $(HEADERS)
+	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
+# -- Benchmark Target --
+BENCHMARK = test/benchmark/benchmark
+$(BENCHMARK): $(BENCHMARK).c test/benchmark/cycles.c $(SOURCES) $(HEADERS)
+	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
+# -- TSS Target --
+TSS_BIN = test/TSS-multi-thread
+$(TSS_BIN): test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
+	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
+# -- Network Targets --
+NET_TARGETS = network/keygen/client network/keygen/TTP
+$(NET_TARGETS): %: %.c $(NET_SOURCES) $(NET_HEADERS)
+	@echo "Compiling $@..."
+	@$(CC) $(CFLAGS) -o $@ $< $(filter-out $<,$^) $(LDLIBS)
+
+# ================
+#  Execution Helpers
+# ================
 test: print_params $(TESTS:=.exec)
+%.exec: %
+	@./$<
 
-benchmarks: $(BENCHMARK)
+benchmark: print_params $(BENCHMARK).exec
 
-benchmark: print_params $(BENCHMARK:=.exec)
+tss: print_params $(TSS_BIN).exec
 
-tss: $(TSS)
+nets: $(NET_TARGETS)
 
-TSS: print_params $(TSS:=.exec)
-
-nets: $(net)
-
-NETS: $(net:=.exec)
-
-# 主目标构建
-PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(DET_SOURCES) $(DET_HEADERS)
-	@ $(CC) $(CFLAGS) -o $@ $(DET_SOURCES) $< -lcrypto
-
-# 性能测试构建
-test/benchmark/benchmark: test/benchmark/benchmark.c \
-                         test/benchmark/cycles.c \
-                         $(SOURCES) $(HEADERS)
-	@ $(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
-
-# 单元测试构建
-test/%: test/%.c $(SOURCES) $(HEADERS)
-	@ $(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
-
-test/%.exec: test/%
-	@$<
-
-# TSS多线程测试构建
-test/TSS-multi-thread: test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
-	@ $(CC) $(CFLAGS) -o $@ $(TSS_SOURCES) $< $(LDLIBS)
-
-# 网络测试构建
-network/keygen/%: network/keygen/%.c $(NET_SOURCES) $(NET_HEADERS)
-	@ $(CC) $(CFLAGS) -o $@ $(NET_SOURCES) $< $(LDLIBS)
-
-
-network/sign/%: network/sign/%.c $(NET_SOURCES) $(NET_HEADERS)
-	@ $(CC) $(CFLAGS) -o $@ $(NET_SOURCES) $< $(LDLIBS)
-
-
-clean:
-	-$(RM) $(TESTS)
-	-$(RM) $(BENCHMARK)
-	-$(RM) $(TSS)
-	-$(RM) $(net)
-	-$(RM) PQCgenKAT_sign
-	-$(RM) PQCsignKAT_*.rsp
-	-$(RM) PQCsignKAT_*.req
-
-
+# ================
+#  Utilities
+# ================
 print_params:
 	@params_len=$$(echo -n "$(PARAMS)" | wc -c); \
 	thash_len=$$(echo -n "$(THASH)" | wc -c); \
@@ -178,3 +137,7 @@ print_params:
 	printf "||   PARAMS = %-$${params_len}s   ||\n" "$(PARAMS)"; \
 	printf "||   THASH  = %-$${params_len}s   ||\n" "$(THASH)"; \
 	printf "%0.s=" $$(seq 1 $$border_len); echo ""
+
+clean:
+	rm -f $(TESTS) $(BENCHMARK) $(TSS_BIN) $(NET_TARGETS) PQCgenKAT_sign \
+	      PQCsignKAT_*.rsp PQCsignKAT_*.req

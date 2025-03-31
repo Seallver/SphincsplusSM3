@@ -10,7 +10,7 @@
 
 
 /* TSS */
-#define PLAYERS SPX_D - 1 //参与方数
+#define PLAYERS 3 //参与方数
 #define THRESHOLD PLAYERS - 1 //门限数
 
 #endif
