@@ -27,6 +27,6 @@ static const char* M = "69e4df9572c32a364429b70c282890934e330e0ad8ba7a169a406269
 // ./TTP 127.0.0.1 10000
 // ./client 1
 // ./client 2
-// ./client 3
+
 
 #endif

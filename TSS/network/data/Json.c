@@ -170,3 +170,4 @@ int load_ctx_from_file(SignNet_ctx* ctx, const char* filename) {
 
     return 0;
 }
+

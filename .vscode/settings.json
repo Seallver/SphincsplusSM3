@@ -74,7 +74,8 @@
         "json.h": "c",
         "sign_round.h": "c",
         "sign_connection.h": "c",
-        "sign_handler.h": "c"
+        "sign_handler.h": "c",
+        "chrono": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

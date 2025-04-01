@@ -102,6 +102,7 @@ void presign_round_player(thread_ctx* ctx) {
     tss_sign_FORS(ctx->sk, ctx->pk, ctx->wots_addr, ctx->mhash, ctx->root, ctx->m, ctx->sm, &ctx->smlen, ctx->mlen, &ctx->tree, &ctx->idx_leaf);
     ctx->sm += SPX_N + SPX_FORS_BYTES;
 
+
     BN_free(shares);
 
 }
@@ -200,7 +201,7 @@ void sign_round_ttp(thread_ctx* ctx) {
     //生成随机数R
     unsigned char* R = malloc(SPX_BYTES);
     tss_gen_R(R, ctx->m, ctx->mlen, sk);
-    
+
     //广播R
     presign_ttp_bc_R(ctx, R);
 

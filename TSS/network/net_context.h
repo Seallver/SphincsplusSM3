@@ -50,6 +50,7 @@ typedef struct {
 
     unsigned char* R;
     unsigned char fors_seed[SPX_N];
+    unsigned char* sig_shard;
 
 } SignNet_ctx;
 

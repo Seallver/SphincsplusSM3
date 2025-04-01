@@ -111,7 +111,7 @@ int ttp_listen_player(SignNet_ctx* ctx, int sock, int srv_id) {
     pthread_barrier_wait(&barrier);
 
     // 发送R
-    int len = strlen(ctx->R);
+    int len = SPX_N;
     int sent = send(sock, ctx->R, len, 0);
     if (sent <= 0) {
         perror("send failed");
@@ -119,7 +119,7 @@ int ttp_listen_player(SignNet_ctx* ctx, int sock, int srv_id) {
     }
 
     // 发送FORS私钥种子
-    len = strlen(ctx->fors_seed);
+    len = SPX_N;
     sent = send(sock, ctx->fors_seed, len, 0);
     if (sent <= 0) {
         perror("send failed");
@@ -156,11 +156,167 @@ void aggregate_seed(SignNet_ctx* ctx) {
     //计算对顶层签名所需要的地址
     tss_gen_ttp_addr(ctx->pk, ctx->mhash, ctx->m, ctx->mlen,
         &ctx->tree, &ctx->idx_leaf, ctx->wots_addr, ctx->tree_addr, ctx->R);
-
-
+    
     BN_CTX_free(BNctx);
     BN_free(sum);
 
     pthread_barrier_wait(&barrier);
     pthread_detach(pthread_self());
+}
+
+int send_root(SignNet_ctx* ctx, int sock, int srv_id) {
+    if (!ctx || srv_id < 0) return -1;
+
+    int len = SPX_N;
+    int sent = send(sock, ctx->root, len, 0);
+    if (sent <= 0) {
+        perror("send failed");
+        return -1;
+    }
+
+    close(sock);
+    return 0;
+}
+
+
+int recv_root(SignNet_ctx* ctx, int sock, int srv_id) {
+    unsigned char* buf = malloc(BUFFER_SIZE);
+    if (!buf){
+        perror("malloc failed");
+        return -1;
+    }
+
+    int len = recv(sock, buf, BUFFER_SIZE - 1, 0);
+    if (len == 0) {
+        perror("recv data failed");
+        SAFE_FREE(buf);
+        return -1;
+    }
+
+    memcpy(ctx->root, buf, len);
+    SAFE_FREE(buf);
+    return 0;
+}
+
+int ttp_recv_root(SignNet_ctx* ctx, int sock, int srv_id) {
+    unsigned char* buf = malloc(BUFFER_SIZE);
+    if (!buf){
+        perror("malloc failed");
+        return -1;
+    }
+
+    int len = recv(sock, buf, BUFFER_SIZE - 1, 0);
+    if (len == 0) {
+        perror("recv data failed");
+        SAFE_FREE(buf);
+        return -1;
+    }
+
+    memcpy(ctx->root, buf, len);
+    SAFE_FREE(buf);
+    return 0;
+}
+
+
+int bc_top_sig(SignNet_ctx* ctx, int sock, int srv_id) {
+    int len = SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    int sent = send(sock, ctx->sig_shard, len, 0);
+    if (sent <= 0) {
+        perror("send failed");
+        return -1;
+    }
+    return 0;
+}
+
+int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
+    //先发送自己的签名份额
+    int len = SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    int sent = send(sock, ctx->sig_shard, len, 0);
+    if (sent <= 0) {
+        perror("send failed");
+        return -1;
+    }
+
+    //再接受并聚合对方发来的签名份额
+    unsigned char* buf = malloc(BUFFER_SIZE);
+    if (!buf){
+        perror("malloc failed");
+        return -1;
+    }
+
+    len = recv(sock, buf, BUFFER_SIZE - 1, 0);
+    if (len == 0) {
+        perror("recv data failed");
+        SAFE_FREE(buf);
+        return -1;
+    }
+    int index;
+    for (int i = 0;i < THRESHOLD;i++)
+        if (threshold[i] == srv_id)
+            index = i;
+    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
+    memcpy(ctx->sm, buf, len);
+    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
+    ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+
+
+    close(sock);
+    SAFE_FREE(buf);
+    return 0;
+}
+
+int listen_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
+    //先接收对方的签名份额并聚合
+    unsigned char* buf = malloc(BUFFER_SIZE);
+    if (!buf){
+        perror("malloc failed");
+        return -1;
+    }
+    int len = recv(sock, buf, BUFFER_SIZE - 1, 0);
+    if (len == 0) {
+        perror("recv data failed");
+        SAFE_FREE(buf);
+        return -1;
+    }
+    int index;
+    for (int i = 0;i < THRESHOLD;i++)
+        if (threshold[i] == srv_id)
+            index = i;
+    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
+    memcpy(ctx->sm, buf, len);
+    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
+    ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    
+    //发送自己的签名份额
+    len = SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    int sent = send(sock, ctx->sig_shard, len, 0);
+    if (sent <= 0) {
+        perror("send failed");
+        return -1;
+    }
+
+    SAFE_FREE(buf);
+    return 0;
+}
+
+int final_sig(SignNet_ctx* ctx, int sock, int srv_id) {
+    //接收对方的签名份额并聚合
+    unsigned char* buf = malloc(BUFFER_SIZE);
+    if (!buf){
+        perror("malloc failed");
+        return -1;
+    }
+    int len = recv(sock, buf, BUFFER_SIZE - 1, 0);
+    if (len == 0) {
+        perror("recv data failed");
+        SAFE_FREE(buf);
+        return -1;
+    }
+    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD);
+    memcpy(ctx->sm, buf, len);
+    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD);
+
+    close(sock);
+    SAFE_FREE(buf);
+    return 0;
 }

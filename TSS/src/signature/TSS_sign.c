@@ -250,6 +250,8 @@ int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
     fors_pk_from_sig(root, sig, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
+
+
     
     int j = 0;
     /* For each subtree.. */
@@ -263,7 +265,6 @@ int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
         copy_keypair_addr(wots_pk_addr, wots_addr);
 
         if (i == SPX_D - 1 || (i + 1 == threshold[j] && j < THRESHOLD)) {
-            
             j++;
             /* The WOTS public key is only correct if the signature was correct. */
             /* Initially, root is the FORS pk, but on subsequent iterations it is
