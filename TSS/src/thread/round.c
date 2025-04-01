@@ -99,7 +99,6 @@ void presign_round_player(thread_ctx* ctx) {
     presign_player_recv_seed(ctx);
 
     //生成地址编码并签名FORS
-    // tss_sign_FORS(ctx);
     tss_sign_FORS(ctx->sk, ctx->pk, ctx->wots_addr, ctx->mhash, ctx->root, ctx->m, ctx->sm, &ctx->smlen, ctx->mlen, &ctx->tree, &ctx->idx_leaf);
     ctx->sm += SPX_N + SPX_FORS_BYTES;
 

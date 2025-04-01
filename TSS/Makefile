@@ -10,9 +10,10 @@ THASH   = simple
 INCLUDE_DIR    = include
 NETWORK_DIR    = network
 INCLUDE_SUBDIRS = hash signature params utils thread crypto
-NETWORK_SUBDIRS = handler connection threadpool keygen sign round
+NETWORK_SUBDIRS = handler connection threadpool keygen sign round data
 INCLUDE_FLAGS  = -I$(INCLUDE_DIR) $(addprefix -I$(INCLUDE_DIR)/, $(INCLUDE_SUBDIRS)) \
-      -I$(NETWORK_DIR) $(addprefix -I$(NETWORK_DIR)/, $(NETWORK_SUBDIRS))
+      -I$(NETWORK_DIR) $(addprefix -I$(NETWORK_DIR)/, $(NETWORK_SUBDIRS)) \
+      -I/usr/local/include/cjson
 
 # ================
 #  Compiler Setup
@@ -23,7 +24,7 @@ CFLAGS  = -Qn -w -std=c99 -pthread -D_GNU_SOURCE \
           -g -O3 \
           -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) \
           $(INCLUDE_FLAGS)
-LDLIBS  = -lpthread -lcrypto
+LDLIBS  = -lpthread -lcrypto -lcjson
 
 # ================
 #  Source Groups
@@ -79,6 +80,7 @@ NET_SOURCES  = $(SOURCES) \
                network/threadpool/threadpool.c \
                network/round/keygen_round.c \
                network/round/sign_round.c \
+               network/data/Json.c
 
 NET_HEADERS = $(HEADERS) include/TSS_api.h \
               $(wildcard network/*/*.h network/*.h)
@@ -110,7 +112,7 @@ $(TSS_BIN): test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
 	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 # -- Network Targets --
-NET_TARGETS = network/keygen/client network/keygen/TTP
+NET_TARGETS = network/keygen/client network/keygen/TTP network/sign/client network/sign/TTP
 $(NET_TARGETS): %: %.c $(NET_SOURCES) $(NET_HEADERS)
 	@echo "Compiling $@..."
 	@$(CC) $(CFLAGS) -o $@ $< $(filter-out $<,$^) $(LDLIBS)

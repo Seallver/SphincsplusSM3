@@ -1,6 +1,6 @@
 #include "keygen_handler.h"
 
-#define SAFE_FREE(p) do { free(p); (p) = NULL; } while (0)
+
 
 // 发送 BIGNUM 数据（返回 0 成功，-1 失败）
 static int send_bignum(int sock, const BIGNUM *num) {
@@ -77,7 +77,8 @@ int ttp_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id) {
 
 int player_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id) {
     // 1. 接收共享份额
-    if (recv_bignum(sock, ctx->tmp_shares[srv_id]) != 0) {
+    BIGNUM* my_shares = BN_new();
+    if (recv_bignum(sock, my_shares) != 0) {
         close(sock);
         return -1;
     }
@@ -87,6 +88,8 @@ int player_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id) {
         close(sock);
         return -1;
     }
+    BN_copy(ctx->tmp_shares[srv_id], my_shares);
+
 
     // 3. 接收随机数
     BIGNUM * tmp = BN_new();
@@ -105,13 +108,8 @@ int player_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id) {
 
     // printf("%s\n", BN_bn2hex(ctx->sss_ctx->random_list[srv_id]));
 
+    BN_free(my_shares);
     BN_free(tmp);
-    close(sock);
-    return 0;
-}
-
-int ttp_handler_send(KeygenNet_ctx* ctx, int sock, int srv_id) {
-
     return 0;
 }
 
@@ -195,6 +193,7 @@ int player_handler_send_ttp(KeygenNet_ctx* ctx, int sock, int srv_id) {
     BN_CTX_free(BNctx);
     BN_free(blinding_shard);
     SAFE_FREE(buf);
+    close(sock);
     return 0;
 }
 
@@ -213,7 +212,6 @@ void complete_pk(KeygenNet_ctx* ctx) {
         fprintf(stderr, "Error: Failed to gen seed\n");
     }
     tss_crypto_sign_keypair(ctx->pk, ctx->sk, seed);
-
 
     BN_CTX_free(BNctx);
     BN_free(sum);

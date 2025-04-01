@@ -4,6 +4,7 @@
 //需要引入状态的头文件--条件变量和互斥锁
 #include "condition.h"
 #include "keygen_handler.h"
+#include "sign_handler.h"
 
 //封装线程池中的对象需要执行的任务对象
 typedef struct task

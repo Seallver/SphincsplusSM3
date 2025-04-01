@@ -10,7 +10,7 @@ pthread_barrier_t barrier;
 int threshold[PLAYERS];
 
 #define SPX_MLEN 512
-#define NUMBER_OF_THREADS PLAYERS+1 //线程数目，注意需要加上TTP
+#define NUMBER_OF_THREADS PLAYERS + 1 //线程数目，注意需要加上TTP
 
 // 比较函数（升序排序）
 int compare_asc(const void *a, const void *b) {

@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "keygen_round.h"
-
+#include "Json.h"
 
 BIGNUM* prime;
 int threshold[PLAYERS];
@@ -43,6 +43,15 @@ int main(int argc, char* argv[]) {
     if (keygen_round_player(ctx)) {
         printf("%d: keygen failed\n", ctx->party_id);   
     }
-    
+
+    // 把keygen生成的关键数据输出(写入文件)
+    char filename[256];
+    snprintf(filename, sizeof(filename), "../data/party_%d_keygen_res.json", ctx->party_id);    
+    if (save_ctx_to_file(ctx, filename)) {
+        printf("Failed to save context\n");
+    } else {
+        printf("Results saved successfully\n");
+    }
+
     return 0;
 }

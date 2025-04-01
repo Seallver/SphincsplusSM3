@@ -24,7 +24,7 @@ int send_connection_id(int sock, int id) {
 
 
 //监听本机端口
-void listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handler_func)(KeygenNet_ctx*, int, int)) {
+void keygen_listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handler_func)(KeygenNet_ctx*, int, int)) {
     //初始化线程池
     threadpool_t pool;
     threadpool_init(&pool, conn_numbers, PLAYERS);
@@ -100,7 +100,7 @@ void listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handler_func)
     close(server_fd);
 }
 
-void create_connection_p2p(char* dst_ip, int dst_port, KeygenNet_ctx* ctx, int (*handler_func)(KeygenNet_ctx*, int, int)) {
+void keygen_create_connection_p2p(char* dst_ip, int dst_port, KeygenNet_ctx* ctx, int (*handler_func)(KeygenNet_ctx*, int, int)) {
     int sockfd = -1;
     struct sockaddr_in servaddr, local_addr;
     
