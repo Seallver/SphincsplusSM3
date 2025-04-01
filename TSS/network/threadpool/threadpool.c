@@ -5,12 +5,27 @@
 #include <errno.h>
 #include <time.h>
 
+//线程函数
+void* thread_func(void* arg) {
+    ThreadArgs* args = (ThreadArgs*)arg;
+    int (*func)(KeygenNet_ctx*, int, int) = args->handler_func;
+    int sock = args->sock;
+    int srv_id = args->srv_id;
+    KeygenNet_ctx* ctx = args->ctx;
+    int ret = func(ctx, sock, srv_id);
+    if (ret) {
+        printf("keygen handler error\n");
+    }
+}
+
+
+
 //线程池中创建的线程执行
 void *thread_routine(void *arg)
 {
     struct timespec abstime;//时间结构体
     int timeout;
-    printf("thread %d is starting\n", (int)pthread_self());
+    // printf("thread %lu is starting\n", (int)pthread_self());
     threadpool_t *pool = (threadpool_t *)arg;
 
     //死循环使线程池中空闲的线程可以复用
@@ -27,7 +42,7 @@ void *thread_routine(void *arg)
         //任务队列没有任务到来并且没有收到线程池销毁通知, 线程阻塞等待(进入这里面都是空闲线程，等待被唤醒)
         while(pool->first == NULL && !pool->quit)
         {   
-            printf("thread %d is waiting\n", (int)pthread_self());
+            // printf("thread %lu is waiting\n", (int)pthread_self());
 
             //获取当前时间，并加上等待时间， 从而设置进程的超时睡眠时间
             clock_gettime(CLOCK_REALTIME, &abstime);  
@@ -36,7 +51,7 @@ void *thread_routine(void *arg)
             status = condition_timedwait(&pool->ready, &abstime);  //该函数会解锁，允许其他线程访问，当被唤醒时，加锁
             if(status == ETIMEDOUT)
             {   
-                printf("thread %d wait timed out\n", (int)pthread_self());
+                // printf("thread %lu wait timed out\n", (int)pthread_self());
                 timeout = 1;
                 break;
             }   
@@ -82,7 +97,7 @@ void *thread_routine(void *arg)
         condition_unlock(&pool->ready);
     }
 
-    printf("thread %d is exiting\n", (int)pthread_self());
+    // printf("thread %lu is exiting\n", (int)pthread_self());
     return NULL;
 
 }
@@ -105,8 +120,8 @@ void threadpool_init(threadpool_t *pool, int idle_threads, int max_threads)
    for(; i < idle_threads; i++)
    {
        pthread_t tid;
-        pthread_create(&tid, NULL, thread_routine, pool);
-        pool->counter++;//已有线程数+1
+       pthread_create(&tid, NULL, thread_routine, pool);
+       pool->counter++;//已有线程数+1
    }
 
 }

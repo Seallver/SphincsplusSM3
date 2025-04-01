@@ -15,7 +15,11 @@ typedef struct {
     unsigned char sk[SPX_SK_BYTES];
 
     //SSS上下文
-    SSS_ctx* sss_ctx; 
+    SSS_ctx* sss_ctx;
+
+    //SSS过程的中间变量
+    BIGNUM** tmp_shares;
+    BIGNUM* tmp_seed;
 
 } KeygenNet_ctx;
 

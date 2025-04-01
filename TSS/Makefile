@@ -10,7 +10,7 @@ THASH   = simple
 INCLUDE_DIR    = include
 NETWORK_DIR    = network
 INCLUDE_SUBDIRS = hash signature params utils thread crypto
-NETWORK_SUBDIRS = handler connection threadpool keygen sign
+NETWORK_SUBDIRS = handler connection threadpool keygen sign round
 INCLUDE_FLAGS  = -I$(INCLUDE_DIR) $(addprefix -I$(INCLUDE_DIR)/, $(INCLUDE_SUBDIRS)) \
       -I$(NETWORK_DIR) $(addprefix -I$(NETWORK_DIR)/, $(NETWORK_SUBDIRS))
 
@@ -77,6 +77,8 @@ NET_SOURCES  = $(SOURCES) \
                network/connection/sign_connection.c  \
                network/threadpool/condition.c \
                network/threadpool/threadpool.c \
+               network/round/keygen_round.c \
+               network/round/sign_round.c \
 
 NET_HEADERS = $(HEADERS) include/TSS_api.h \
               $(wildcard network/*/*.h network/*.h)

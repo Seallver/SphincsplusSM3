@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "net_settings.h"
-#include "keygen_connection.h"
-#include "net_context.h"
+#include "keygen_round.h"
+
 
 BIGNUM* prime;
 int threshold[PLAYERS];
+pthread_barrier_t barrier;
 
 void init_params() {
     prime = BN_new();
@@ -15,6 +15,9 @@ void init_params() {
     for (int i = 0; i < THRESHOLD; i++) {
         threshold[i] = T[i];
     }
+
+    //初始化屏障
+    pthread_barrier_init(&barrier, NULL, PLAYERS);
 }
 
 int main(int argc, char* argv[]) {
@@ -25,7 +28,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    //初始化参数
+    //初始化上下文参数
     KeygenNet_ctx* ctx = (KeygenNet_ctx*)malloc(sizeof(KeygenNet_ctx));
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
     SSS_init(sss_ctx);
@@ -36,13 +39,9 @@ int main(int argc, char* argv[]) {
     memcpy(ctx->local_ip, argv[2], strlen(argv[2]));
     ctx->port = atoi(argv[3]);
 
-    //监听本机端口，等待连接
-    int conn_numbers = ctx->party_id - 1;
-    listen_local_port(ctx, conn_numbers, player_handler_recv);
-
-    //主动与其他参与方建立连接
-    for (int i = ctx->party_id + 1; i <= PLAYERS; i++) {
-        create_connection_p2p(IP[i], port[i], ctx, player_handler_send);
+    //执行keygen_round
+    if (keygen_round_player(ctx)) {
+        printf("%d: keygen failed\n", ctx->party_id);   
     }
     
     return 0;

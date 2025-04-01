@@ -3,7 +3,7 @@
 
 //互斥锁，调试用输出函数
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+
 
 void print_char(unsigned char* chr, int len, int tid) {
     pthread_mutex_lock(&mutex);
@@ -178,8 +178,6 @@ void sign_round_player(thread_ctx* ctx) {
     memcpy(ctx->sm, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
     ctx->sm += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
     ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
-
-    
 }
 
 

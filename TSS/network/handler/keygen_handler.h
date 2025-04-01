@@ -3,10 +3,20 @@
 #include "net_settings.h"
 #include "net_context.h"
 
-int ttp_handler_recv(KeygenNet_ctx* ctx, int sock);
+#define BUFFER_SIZE 4096
 
-int player_handler_recv(KeygenNet_ctx* ctx, int sock);
+static int send_bignum(int sock, const BIGNUM* num);
 
-int ttp_handler_send(KeygenNet_ctx* ctx, int sock);
+static int recv_bignum(int sock, BIGNUM* dest);
 
-int player_handler_send(KeygenNet_ctx* ctx, int sock);
+int ttp_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id);
+
+int player_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id);
+
+int ttp_handler_send(KeygenNet_ctx* ctx, int sock, int srv_id);
+
+int player_handler_send(KeygenNet_ctx* ctx, int sock, int srv_id);
+
+int player_handler_send_ttp(KeygenNet_ctx* ctx, int sock, int srv_id);
+
+void complete_pk(KeygenNet_ctx* ctx);

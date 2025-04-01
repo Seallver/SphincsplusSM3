@@ -65,7 +65,11 @@
         "errno.h": "c",
         "keygen_netcontext.h": "c",
         "inet.h": "c",
-        "net_context.h": "c"
+        "net_context.h": "c",
+        "keygen_round.h": "c",
+        "threadpool.h": "c",
+        "condition.h": "c",
+        "ratio": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

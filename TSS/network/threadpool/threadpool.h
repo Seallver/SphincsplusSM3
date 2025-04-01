@@ -3,6 +3,7 @@
 
 //需要引入状态的头文件--条件变量和互斥锁
 #include "condition.h"
+#include "keygen_handler.h"
 
 //封装线程池中的对象需要执行的任务对象
 typedef struct task
@@ -24,6 +25,16 @@ typedef struct threadpool
     int max_threads;     //线程池最大线程数
     int quit;            //是否退出标志 1/0
 }threadpool_t;
+
+typedef struct {
+    KeygenNet_ctx* ctx;
+    int sock;
+    int srv_id;
+    int (*handler_func)(KeygenNet_ctx*, int, int);
+}ThreadArgs;
+
+//线程函数
+void *thread_func(void *arg);
 
 
 //线程池初始化
