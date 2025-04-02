@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "sign_connection.h"
-
+#include "net_settings.h"
 
 BIGNUM* prime;
 int threshold[PLAYERS];
@@ -25,6 +25,11 @@ int main() {
 
     //初始化上下文参数
     SignNet_ctx* ctx = (SignNet_ctx*)malloc(sizeof(SignNet_ctx));
+
+    for (int i = 0; i <= PLAYERS; i++) {
+        memcpy(ctx->ip_[i], IP[i], strlen(IP[i]));
+        ctx->port_[i] = port[i];
+    }
 
     ctx->party_id = 0;
     ctx->local_ip = malloc(strlen(IP[0]) + 1);

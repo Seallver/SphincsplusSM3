@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "net_settings.h"
 #include "keygen_connection.h"
 
 
@@ -30,10 +30,17 @@ int main() {
     SSS_init(sss_ctx);
     ctx->sss_ctx = sss_ctx;
 
+    for (int i = 0; i <= PLAYERS; i++) {
+        memcpy(ctx->ip_[i], IP[i], strlen(IP[i]));
+        ctx->port_[i] = port[i];
+    }
+
     ctx->party_id = 0;
     ctx->local_ip = malloc(strlen(IP[0]) + 1);
     memcpy(ctx->local_ip, IP[0], strlen(IP[0]));
     ctx->port = port[0];
+
+
 
     //执行keygen_round
     if (keygen_round_ttp(ctx)) {

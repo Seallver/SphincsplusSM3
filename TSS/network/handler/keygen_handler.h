@@ -1,6 +1,6 @@
 #include "SSS.h"
 #include "TSS_api.h"
-#include "net_settings.h"
+
 #include "net_context.h"
 
 #define SAFE_FREE(p) do { free(p); (p) = NULL; } while (0)

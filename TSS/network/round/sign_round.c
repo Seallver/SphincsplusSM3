@@ -15,7 +15,7 @@ int sign_round_player(SignNet_ctx* ctx) {
     generate_threshold_shards(ctx->share, shares, ctx->party_id);
 
     //发送共享份额给ttp，并等待接收R和FORS私钥种子
-    sign_create_connection_p2p(IP[0], port[0], ctx, player_conn_to_ttp);
+    sign_create_connection_p2p(ctx->ip_[0], ctx->port_[0], ctx, player_conn_to_ttp);
 
     memset(ctx->wots_addr, 0, sizeof(ctx->wots_addr));
     memset(ctx->tree_addr, 0, sizeof(ctx->tree_addr));
@@ -42,7 +42,7 @@ int sign_round_player(SignNet_ctx* ctx) {
         ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
         memcpy(ctx->sm, ctx->sig_shard, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
         //向下一个门限层发送root
-        sign_create_connection_p2p(IP[threshold[index + 1]], port[threshold[index + 1]], ctx, send_root);
+        sign_create_connection_p2p(ctx->ip_[threshold[index + 1]], ctx->port_[threshold[index + 1]], ctx, send_root);
     }
     else {
         //监听端口，收取root
@@ -51,10 +51,10 @@ int sign_round_player(SignNet_ctx* ctx) {
         ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
         memcpy(ctx->sm + (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N)*(index), ctx->sig_shard, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
         if (index == THRESHOLD - 1) {
-            sign_create_connection_p2p(IP[0], port[0], ctx, send_root);
+            sign_create_connection_p2p(ctx->ip_[0], ctx->port_[0], ctx, send_root);
         }
         else {
-            sign_create_connection_p2p(IP[threshold[index + 1]], port[threshold[index + 1]], ctx, send_root);
+            sign_create_connection_p2p(ctx->ip_[threshold[index + 1]], ctx->port_[threshold[index + 1]], ctx, send_root);
         }
     }
 
@@ -65,11 +65,11 @@ int sign_round_player(SignNet_ctx* ctx) {
 
     //主动与其他参与方建立连接
     for (int i = index + 1; i < THRESHOLD; i++) {
-        keygen_create_connection_p2p(IP[threshold[i]], port[threshold[i]], ctx, conn_exchange_sig);
+        keygen_create_connection_p2p(ctx->ip_[threshold[i]], ctx->port_[threshold[i]], ctx, conn_exchange_sig);
     }
 
     //主动与ttp连接，获取最终份额并聚合
-    keygen_create_connection_p2p(IP[0], port[0], ctx, final_sig);
+    keygen_create_connection_p2p(ctx->ip_[0], ctx->port_[0], ctx, final_sig);
     ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD);
 
     // for (int i = 0;i < (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD + 1);i++) {

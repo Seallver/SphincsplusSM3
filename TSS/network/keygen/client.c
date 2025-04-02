@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "net_settings.h"
 
 #include "keygen_round.h"
 #include "Json.h"
@@ -27,12 +28,17 @@ int main(int argc, char* argv[]) {
         printf("Usage: %s <party_id>\n", argv[0]);
         return -1;
     }
-
+    
     //初始化上下文参数
     KeygenNet_ctx* ctx = (KeygenNet_ctx*)malloc(sizeof(KeygenNet_ctx));
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
     SSS_init(sss_ctx);
     ctx->sss_ctx = sss_ctx;
+
+    for (int i = 0; i <= PLAYERS; i++) {
+        memcpy(ctx->ip_[i], IP[i], strlen(IP[i]));
+        ctx->port_[i] = port[i];
+    }
 
     ctx->party_id = atoi(argv[1]);
     ctx->local_ip = malloc(strlen(IP[ctx->party_id]) + 1);

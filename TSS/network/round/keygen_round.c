@@ -17,14 +17,14 @@ int keygen_round_player(KeygenNet_ctx* ctx) {
 
     //主动与其他参与方建立连接
     for (int i = ctx->party_id + 1; i <= PLAYERS; i++) {
-        keygen_create_connection_p2p(IP[i], port[i], ctx, player_handler_send);
+        keygen_create_connection_p2p(ctx->ip_[i], ctx->port_[i], ctx, player_handler_send);
     }
 
     //聚合共享份额
     aggregate_shares(ctx->sss_ctx->share, ctx->tmp_shares + 1, BNctx);
 
     //发送盲化后的份额给ttp，并接收公钥
-    keygen_create_connection_p2p(IP[0], port[0], ctx, player_handler_send_ttp);
+    keygen_create_connection_p2p(ctx->ip_[0], ctx->port_[0], ctx, player_handler_send_ttp);
 
     BN_CTX_free(BNctx);
     return 0;

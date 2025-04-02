@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "net_settings.h"
 #include "sign_round.h"
 #include "Json.h"
 
@@ -47,12 +47,16 @@ int main(int argc, char* argv[]) {
     printf("party_id: %d\n", ctx->party_id);
 
     printf("IP: %s\n", ctx->local_ip);
+
+    for (int i = 0; i <= PLAYERS; i++) {
+        memcpy(ctx->ip_[i], IP[i], strlen(IP[i]));
+        ctx->port_[i] = port[i];
+    }
+
     //执行sign_round
     if (sign_round_player(ctx)) {
         printf("%d: keygen failed\n", ctx->party_id);   
     }
-
-   
 
     ctx->sm -= ctx->smlen;
     memmove(ctx->sm + SPX_BYTES, ctx->m, ctx->mlen);
