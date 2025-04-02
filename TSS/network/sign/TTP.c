@@ -37,6 +37,10 @@ int main(int argc, char* argv[]) {
     memcpy(ctx->local_ip, argv[1], strlen(argv[1]));
     ctx->port = atoi(argv[2]);
 
+    ctx->mlen = MLEN;
+    ctx->m = malloc(ctx->mlen);
+    memcpy(ctx->m, M, ctx->mlen);
+
     //执行sign_round
     if (sign_round_ttp(ctx)) {
         printf("%d: sign failed\n", ctx->party_id);   

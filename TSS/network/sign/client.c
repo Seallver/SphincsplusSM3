@@ -54,10 +54,14 @@ int main(int argc, char* argv[]) {
 
     ctx->sm -= ctx->smlen;
     memmove(ctx->sm + SPX_BYTES, ctx->m, ctx->mlen);
-    //验证签名
-    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk)) {
-        printf("vrfy failed\n");
-        return -1;
+
+    // 把keygen生成的关键数据输出(写入文件)
+    snprintf(filename, sizeof(filename), "../data/party_%d_sig.json", ctx->party_id);    
+    if (save_sig_to_file(ctx, filename)) {
+        printf("Failed to save context\n");
+    } else {
+        printf("Results saved successfully\n");
     }
+    
     return 0;
 }

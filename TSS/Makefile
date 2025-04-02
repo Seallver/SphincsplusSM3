@@ -112,7 +112,7 @@ $(TSS_BIN): test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
 	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 # -- Network Targets --
-NET_TARGETS = network/keygen/client network/keygen/TTP network/sign/client network/sign/TTP
+NET_TARGETS = network/keygen/client network/keygen/TTP network/sign/client network/sign/TTP network/verify/verify
 $(NET_TARGETS): %: %.c $(NET_SOURCES) $(NET_HEADERS)
 	@echo "Compiling $@..."
 	@$(CC) $(CFLAGS) -o $@ $< $(filter-out $<,$^) $(LDLIBS)

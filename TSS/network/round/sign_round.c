@@ -1,8 +1,14 @@
 #include "sign_round.h"
 
 
+
 int sign_round_player(SignNet_ctx* ctx) {
     BN_CTX* BNctx = BN_CTX_new();
+
+    //初始化结构体参数
+    ctx->sm = malloc(SPX_BYTES + ctx->mlen);
+    ctx->sig_shard = malloc(SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+    ctx->smlen = 0;
 
     //计算门限份额
     BIGNUM* shares = BN_new();
@@ -12,17 +18,11 @@ int sign_round_player(SignNet_ctx* ctx) {
     //发送共享份额给ttp，并等待接收R和FORS私钥种子
     sign_create_connection_p2p(IP[0], port[0], ctx, player_conn_to_ttp);
 
-    //初始化结构体参数进行FORS签名
-    ctx->sm = malloc(SPX_BYTES + ctx->mlen);
-    ctx->sig_shard = malloc(SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
-    ctx->smlen = 0;
-
     memset(ctx->wots_addr, 0, sizeof(ctx->wots_addr));
     memset(ctx->tree_addr, 0, sizeof(ctx->tree_addr));
 
     tss_sign_FORS(ctx->sk, ctx->pk, ctx->wots_addr, ctx->mhash, ctx->root, ctx->m, ctx->sm, &ctx->smlen, ctx->mlen, &ctx->tree, &ctx->idx_leaf);
     ctx->sm += SPX_N + SPX_FORS_BYTES;
-
 
     //计算出自己WOTS签名的地址
     tss_gen_addr(ctx->party_id, &ctx->tree, &ctx->idx_leaf, ctx->wots_addr, ctx->tree_addr);

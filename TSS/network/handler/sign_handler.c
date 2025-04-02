@@ -76,9 +76,8 @@ int player_conn_to_ttp(SignNet_ctx* ctx, int sock, int srv_id) {
         SAFE_FREE(buf);
         return -1;
     }
-    ctx->R = malloc(len);
-    memcpy(ctx->R, buf, len);
-    
+    memcpy(ctx->sm, buf, SPX_BYTES);
+
     //接收FORS私钥种子
     len = recv(sock, buf, BUFFER_SIZE - 1, 0);
     // 接收数据
@@ -153,6 +152,9 @@ void aggregate_seed(SignNet_ctx* ctx) {
     //生成FORS的私钥种子
     tss_gen_FORS_seed(ctx->fors_seed);
 
+    memset(ctx->wots_addr, 0, sizeof(ctx->wots_addr));
+    memset(ctx->tree_addr, 0, sizeof(ctx->tree_addr));
+
     //计算对顶层签名所需要的地址
     tss_gen_ttp_addr(ctx->pk, ctx->mhash, ctx->m, ctx->mlen,
         &ctx->tree, &ctx->idx_leaf, ctx->wots_addr, ctx->tree_addr, ctx->R);
@@ -169,6 +171,7 @@ int send_root(SignNet_ctx* ctx, int sock, int srv_id) {
 
     int len = SPX_N;
     int sent = send(sock, ctx->root, len, 0);
+
     if (sent <= 0) {
         perror("send failed");
         return -1;

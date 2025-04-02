@@ -93,8 +93,6 @@ int tss_sign_FORS(unsigned char* sk, unsigned char* pk, uint32_t* wots_addr,
 {
     spx_ctx ctx;
 
-    unsigned char optrand[SPX_N];
-
     memcpy(ctx.sk_seed, sk, SPX_N);
     memcpy(ctx.pub_seed, pk, SPX_N);
 
@@ -145,6 +143,7 @@ int tss_gen_FORS_seed(unsigned char* seed) {
 }
 
 int tss_gen_addr(int id, uint64_t *tree, uint32_t *idx_leaf, uint32_t* wots_addr, uint32_t* tree_addr){
+
     for (int i = 0;i < id;i++) {
         set_layer_addr(tree_addr, i);
         set_tree_addr(tree_addr, *tree);
@@ -164,7 +163,10 @@ int tss_gen_ttp_addr(unsigned char* pk, unsigned char* mhash, unsigned char* m, 
     set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
     memcpy(spxctx.pub_seed, pk, SPX_N);
+
+
     hash_message(mhash, tree, idx_leaf, R, pk, m, mlen, &spxctx);
+
     set_tree_addr(wots_addr, *tree);
     set_keypair_addr(wots_addr, *idx_leaf);
 
@@ -250,8 +252,6 @@ int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
     fors_pk_from_sig(root, sig, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
-
-
     
     int j = 0;
     /* For each subtree.. */

@@ -75,7 +75,29 @@ cJSON* keygen_ctx_to_json(const KeygenNet_ctx* ctx) {
     return json;
 }
 
-// 写入JSON文件
+
+// 序列化SignNet_ctx结构体
+cJSON* sig_to_json(const SignNet_ctx* ctx) {
+    cJSON* json = cJSON_CreateObject();
+    if (!json) return NULL;
+
+    cJSON_AddNumberToObject(json, "mlen", ctx->mlen);
+    cJSON_AddNumberToObject(json, "smlen", ctx->smlen);
+
+    // 序列化公钥（Base64编码）
+    char* pk_base64 = base64_encode(ctx->pk, SPX_PK_BYTES);
+    cJSON_AddStringToObject(json, "pk", pk_base64);
+    free(pk_base64);
+
+    // 序列化签名（Base64编码）
+    char* sig_base64 = base64_encode(ctx->sm, SPX_BYTES + ctx->mlen);
+    cJSON_AddStringToObject(json, "Sig", sig_base64);
+    free(sig_base64);
+
+    return json;
+}
+
+// keygen结果写入JSON文件
 int save_ctx_to_file(const KeygenNet_ctx* ctx, const char* filename) {
     cJSON* json = keygen_ctx_to_json(ctx);
     if (!json) return -1;
@@ -95,6 +117,29 @@ int save_ctx_to_file(const KeygenNet_ctx* ctx, const char* filename) {
     free(json_str);
     return 0;
 }
+
+//sign结果写入JSON文件
+int save_sig_to_file(const SignNet_ctx* ctx, const char* filename) {
+    cJSON* json = sig_to_json(ctx);
+    if (!json) return -1;
+
+    char* json_str = cJSON_Print(json);
+    FILE* fp = fopen(filename, "w");
+    if (!fp) {
+        cJSON_Delete(json);
+        free(json_str);
+        return -1;
+    }
+
+    fputs(json_str, fp);
+    fclose(fp);
+
+    cJSON_Delete(json);
+    free(json_str);
+    return 0;
+    
+}
+
 
 // 从十六进制字符串创建BIGNUM
 static BIGNUM* hex_to_bn(const char* hex) {
@@ -171,3 +216,56 @@ int load_ctx_from_file(SignNet_ctx* ctx, const char* filename) {
     return 0;
 }
 
+// 从JSON解析出sm
+int load_sm(unsigned char* pk, unsigned char** sm, int* smlen, int* mlen, const char* filename) {
+    FILE* fp = fopen(filename, "r");
+    if (!fp) return -1;
+
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    char* json_str = malloc(size + 1);
+    fread(json_str, 1, size, fp);
+    json_str[size] = '\0';
+    fclose(fp);
+    
+    cJSON* json = cJSON_Parse(json_str);
+    if (!json) return NULL;
+
+
+    cJSON* item = cJSON_GetObjectItem(json, "mlen");
+    if (item) *mlen = item->valueint;
+
+
+    item = cJSON_GetObjectItem(json, "smlen");
+    if (item) *smlen = item->valueint;
+
+
+
+    item = cJSON_GetObjectItem(json, "Sig");
+    if (item && cJSON_IsString(item)) {
+        size_t len;
+        unsigned char* decoded = base64_decode(item->valuestring, &len);
+        if(len != SPX_BYTES + *mlen) {
+            fprintf(stderr, "Invalid signature length\n");
+            return -1;
+        }
+        *sm = malloc(len);
+        memcpy(*sm, decoded, len);
+        free(decoded);
+    }
+
+    item = cJSON_GetObjectItem(json, "pk");
+    if (item && cJSON_IsString(item)) {
+        size_t pk_len;
+        unsigned char* decoded = base64_decode(item->valuestring, &pk_len);
+        memcpy(pk, decoded, pk_len);
+        free(decoded);
+    }
+
+
+    cJSON_Delete(json);
+    free(json_str);
+    return 0;
+}
