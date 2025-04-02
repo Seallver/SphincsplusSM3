@@ -21,14 +21,14 @@ static const char* M = "69e4df9572c32a364429b70c282890934e330e0ad8ba7a169a406269
 //demo:
 //
 // terminal---keygen
-// ./TTP 127.0.0.1 10000
-// ./client 1 127.0.0.1 10001
-// ./client 2 127.0.0.1 10002
-// ./client 3 127.0.0.1 10003
-// ./client 4 127.0.0.1 10004
-//
+// ./TTP 
+// ./client 1 
+// ./client 2
+// ./client 3
+// ./client 4
+// 
 // terminal---sign
-// ./TTP 127.0.0.1 10000
+// ./TTP
 // ./client 1
 // ./client 2
 // ./client 3

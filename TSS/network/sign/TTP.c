@@ -20,21 +20,16 @@ void init_params() {
 
 }
 
-int main(int argc, char* argv[]) {
+int main() {
     init_params();
-
-    if (argc != 3) {
-        printf("Usage: %s <local_IP> <port> \n", argv[0]);
-        return -1;
-    }
 
     //初始化上下文参数
     SignNet_ctx* ctx = (SignNet_ctx*)malloc(sizeof(SignNet_ctx));
 
     ctx->party_id = 0;
-    ctx->local_ip = malloc(strlen(argv[1]) + 1);
-    memcpy(ctx->local_ip, argv[1], strlen(argv[1]));
-    ctx->port = atoi(argv[2]);
+    ctx->local_ip = malloc(strlen(IP[0]) + 1);
+    memcpy(ctx->local_ip, IP[0], strlen(IP[0]));
+    ctx->port = port[0];
 
     ctx->mlen = MLEN;
     ctx->m = malloc(ctx->mlen);

@@ -23,8 +23,8 @@ void init_params() {
 int main(int argc, char* argv[]) {
     init_params();
     
-    if (argc != 4) {
-        printf("Usage: %s <party_id> <local_IP> <port> \n", argv[0]);
+    if (argc != 2) {
+        printf("Usage: %s <party_id>\n", argv[0]);
         return -1;
     }
 
@@ -35,9 +35,10 @@ int main(int argc, char* argv[]) {
     ctx->sss_ctx = sss_ctx;
 
     ctx->party_id = atoi(argv[1]);
-    ctx->local_ip = malloc(strlen(argv[2]) + 1);
-    memcpy(ctx->local_ip, argv[2], strlen(argv[2]));
-    ctx->port = atoi(argv[3]);
+    ctx->local_ip = malloc(strlen(IP[ctx->party_id]) + 1);
+    memcpy(ctx->local_ip, IP[ctx->party_id], strlen(IP[ctx->party_id]));
+    ctx->port = port[ctx->party_id];
+
 
     //执行keygen_round
     if (keygen_round_player(ctx)) {
