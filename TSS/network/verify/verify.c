@@ -1,5 +1,8 @@
+#include "params.h"
 #include "Json.h"
 #include "net_settings.h"
+
+
 
 BIGNUM* prime;
 int threshold[PLAYERS];

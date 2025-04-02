@@ -52,6 +52,8 @@ int main(int argc, char* argv[]) {
         printf("%d: keygen failed\n", ctx->party_id);   
     }
 
+   
+
     ctx->sm -= ctx->smlen;
     memmove(ctx->sm + SPX_BYTES, ctx->m, ctx->mlen);
 
@@ -62,6 +64,12 @@ int main(int argc, char* argv[]) {
     } else {
         printf("Results saved successfully\n");
     }
-    
+
+    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk)) {
+        printf("vrfy failed\n");
+        return -1;
+    }
+    printf("vrfy success!\n");
+
     return 0;
 }

@@ -18,10 +18,6 @@
 /* The hash function is defined by linking a different hash.c file, as opposed
    to setting a #define constant. */
 
-/* This is a SM3-based parameter set, hence whether we use SHA-256
- * exclusively or we use both SHA-256 and SHA-512 is controlled by
- * the following #define */
-#define SPX_SHA512 0  /* Use SHA-256 for all hashes */
 
 /* For clarity */
 #define SPX_ADDR_BYTES 32
@@ -74,9 +70,10 @@
 #define SPX_FORS_BYTES ((SPX_FORS_HEIGHT + 1) * SPX_FORS_TREES * SPX_N)
 #define SPX_FORS_PK_BYTES SPX_N
 
-/* Resulting SPX sizes. */
-#define SPX_BYTES (SPX_N + SPX_FORS_BYTES + SPX_D * SPX_WOTS_BYTES +\
-                   SPX_FULL_HEIGHT * SPX_N)
+// /* Resulting SPX sizes. */
+// #define SPX_BYTES (SPX_N + SPX_FORS_BYTES + SPX_D * SPX_WOTS_BYTES +\
+//                    SPX_FULL_HEIGHT * SPX_N)
+
 #define SPX_PK_BYTES (2 * SPX_N)
 #define SPX_SK_BYTES (2 * SPX_N + SPX_PK_BYTES)
 

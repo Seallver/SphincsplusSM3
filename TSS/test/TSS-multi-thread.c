@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#define TSS
+#include "params.h"
 
 #include "globals.h"
 #include "logic.h"
@@ -8,6 +10,7 @@
 BIGNUM* prime;
 pthread_barrier_t barrier;
 int threshold[PLAYERS];
+
 
 #define SPX_MLEN 512
 #define NUMBER_OF_THREADS PLAYERS + 1 //线程数目，注意需要加上TTP
@@ -51,6 +54,7 @@ void print_sigma(const unsigned char* sigma) {
     printf("\n");
     printf("}\n");
     printf("SIGMA size: %.2f KB\n", SPX_BYTES / 1024.0);
+    
 }
 
 int main(void)
@@ -170,4 +174,5 @@ int main(void)
     }
     printf("VERIFY: successful\n");
 
+    return 0;
 }

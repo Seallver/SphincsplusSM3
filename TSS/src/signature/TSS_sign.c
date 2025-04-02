@@ -231,6 +231,7 @@ int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
         return -1;
     }
 
+
     memcpy(ctx.pub_seed, pk, SPX_N);
 
     /* This hook allows the hash function instantiation to do whatever
@@ -252,7 +253,9 @@ int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
     fors_pk_from_sig(root, sig, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
-    
+
+
+
     int j = 0;
     /* For each subtree.. */
     for (i = 0; i < SPX_D; i++) {

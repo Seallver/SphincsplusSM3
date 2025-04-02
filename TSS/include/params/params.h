@@ -10,7 +10,17 @@
 
 
 /* TSS */
-#define PLAYERS 3 //参与方数
+#define PLAYERS 4 //参与方数
 #define THRESHOLD PLAYERS - 1 //门限数
+
+#ifdef TSS
+    /* Resulting SPX sizes. */
+    #define SPX_BYTES (SPX_N + SPX_FORS_BYTES + (THRESHOLD + 1) * SPX_WOTS_BYTES +\
+        (THRESHOLD + 1)* SPX_TREE_HEIGHT * SPX_N)
+#else
+    /* Resulting SPX sizes. */
+    #define SPX_BYTES (SPX_N + SPX_FORS_BYTES + SPX_D * SPX_WOTS_BYTES +\
+        SPX_FULL_HEIGHT * SPX_N)
+#endif
 
 #endif

@@ -171,11 +171,16 @@ int send_root(SignNet_ctx* ctx, int sock, int srv_id) {
 
     int len = SPX_N;
     int sent = send(sock, ctx->root, len, 0);
-
     if (sent <= 0) {
         perror("send failed");
         return -1;
     }
+
+    // printf("root:\n");
+    // for(int i = 0; i < len; i++) {
+    //     printf("%02x", ctx->root[i]);
+    // }
+    // printf("\n");
 
     close(sock);
     return 0;
@@ -196,6 +201,12 @@ int recv_root(SignNet_ctx* ctx, int sock, int srv_id) {
         return -1;
     }
 
+    // printf("root:\n");
+    // for(int i = 0; i < len; i++) {
+    //     printf("%02x", buf[i]);
+    // }
+    // printf("\n");
+
     memcpy(ctx->root, buf, len);
     SAFE_FREE(buf);
     return 0;
@@ -215,6 +226,13 @@ int ttp_recv_root(SignNet_ctx* ctx, int sock, int srv_id) {
         return -1;
     }
 
+
+    // printf("root:\n");
+    // for(int i = 0; i < len; i++) {
+    //     printf("%02x", buf[i]);
+    // }
+    // printf("\n");
+
     memcpy(ctx->root, buf, len);
     SAFE_FREE(buf);
     return 0;
@@ -228,6 +246,15 @@ int bc_top_sig(SignNet_ctx* ctx, int sock, int srv_id) {
         perror("send failed");
         return -1;
     }
+
+
+    // printf("sig_shard:\n");
+    // for(int i = 0; i < len; i++) {
+    //     printf("%02x", ctx->sig_shard[i]);
+    // }
+    // printf("\n");
+
+
     return 0;
 }
 
@@ -315,6 +342,13 @@ int final_sig(SignNet_ctx* ctx, int sock, int srv_id) {
         SAFE_FREE(buf);
         return -1;
     }
+
+    // printf("sig_shard:\n");
+    // for(int i = 0; i < len; i++) {
+    //     printf("%02x", buf[i]);
+    // }
+    // printf("\n");
+
     ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD);
     memcpy(ctx->sm, buf, len);
     ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD);

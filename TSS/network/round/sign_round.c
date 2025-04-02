@@ -3,7 +3,6 @@
 
 
 int sign_round_player(SignNet_ctx* ctx) {
-    BN_CTX* BNctx = BN_CTX_new();
 
     //初始化结构体参数
     ctx->sm = malloc(SPX_BYTES + ctx->mlen);
@@ -79,7 +78,7 @@ int sign_round_player(SignNet_ctx* ctx) {
     // printf("\n");
 
     BN_free(shares);
-    BN_CTX_free(BNctx);
+
     return 0;
 }
 
