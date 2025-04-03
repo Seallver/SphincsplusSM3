@@ -1,3 +1,24 @@
+// 在文件顶部添加以下内容（不需要单独的头文件）
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// 确保编译器可见性设置
+#if defined(__GNUC__) || defined(__clang__)
+#define API_EXPORT __attribute__((visibility("default")))
+#else
+#define API_EXPORT
+#endif
+
+// 函数声明
+API_EXPORT int playerAPI(int n, int t, int party_id, ...);
+API_EXPORT int ttpAPI(int n, int t, ...);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +33,7 @@ int threshold[SPX_D - 1];
 pthread_barrier_t barrier;
 
 //所需参数形式：<n> <t> <party_id> + <threshold_id> <threshold_id> ... + <IP> <port> <IP> <port> ...
-KeygenNet_ctx* playerAPI(int n, int t, int party_id,...) {
+int playerAPI(int n, int t, int party_id,...) {
     if (n > SPX_D - 1 || n < 0) {
         printf("n must be in [0, d)\n");
         return NULL;
@@ -65,11 +86,11 @@ KeygenNet_ctx* playerAPI(int n, int t, int party_id,...) {
         printf("Results saved successfully\n");
     }
 
-    return ctx;
+    return 0;
 }
 
 //所需参数形式:<n> <t> <threshold_id> <threshold_id> ... + <IP> <port> <IP> <port> ...
-KeygenNet_ctx* ttpAPI(int n, int t, ...) {
+int ttpAPI(int n, int t, ...) {
     if (n > SPX_D - 1 || n < 0) {
         printf("n must be in [0, d)\n");
         return NULL;
@@ -114,5 +135,5 @@ KeygenNet_ctx* ttpAPI(int n, int t, ...) {
         printf("%d: keygen failed\n", ctx->party_id);   
     }
 
-    return ctx;
+    return 0;
 }

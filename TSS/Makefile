@@ -37,7 +37,6 @@ CORE_SOURCES = $(BASE_SRCDIR)/signature/address.c \
                $(BASE_SRCDIR)/signature/wots.c \
                $(BASE_SRCDIR)/signature/wotsx1.c \
                $(BASE_SRCDIR)/signature/fors.c \
-               $(BASE_SRCDIR)/signature/sign.c
 
 # -- Utility Components --
 UTIL_SOURCES = $(BASE_SRCDIR)/utils/utils.c \
@@ -100,23 +99,9 @@ API_HEADERS = $(NET_HEADERS)
 # ================
 #  Build Targets
 # ================
-.PHONY: all clean test benchmark tss nets print_params api
+.PHONY: all clean test tss nets print_params api
 
-all: PQCgenKAT_sign test benchmark api nets
-
-# -- Main Targets --
-PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(filter-out src/utils/randombytes.c,$(SOURCES)) src/utils/rng.c $(HEADERS)
-	@$(CC) $(CFLAGS) -o $@ $^ -lcrypto
-
-# -- Test Targets --
-TESTS = test/fors test/spx
-$(TESTS): %: %.c $(SOURCES) $(HEADERS)
-	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
-
-# -- Benchmark Target --
-BENCHMARK = test/benchmark/benchmark
-$(BENCHMARK): $(BENCHMARK).c test/benchmark/cycles.c $(SOURCES) $(HEADERS)
-	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+all:  test tss api nets 
 
 # -- TSS Target --
 TSS_BIN = test/TSS-multi-thread
@@ -130,9 +115,12 @@ $(NET_TARGETS): %: %.c $(NET_SOURCES) $(NET_HEADERS)
 	@$(CC) $(CFLAGS) -DTSS -o $@ $< $(filter-out $<,$^) $(LDLIBS)
 
 # -- API Shared Library --
+API_CFLAGS = $(CFLAGS) -fPIC -fvisibility=hidden
+LDFLAGS = -Wl,--exclude-libs,ALL
+
 $(API_TARGET): $(API_SOURCES) $(API_HEADERS)
 	@echo "Building TSS API shared library..."
-	@$(CC) $(CFLAGS) -fPIC -shared -o $@ $(API_SOURCES) $(LDLIBS) 
+	@$(CC) $(API_CFLAGS) -shared -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 # ================
 #  Execution Helpers
@@ -140,8 +128,6 @@ $(API_TARGET): $(API_SOURCES) $(API_HEADERS)
 test: print_params $(TESTS:=.exec)
 %.exec: %
 	@./$<
-
-benchmark: print_params $(BENCHMARK).exec
 
 tss: print_params $(TSS_BIN).exec
 
@@ -162,4 +148,4 @@ print_params:
 	printf "%0.s=" $$(seq 1 $$border_len); echo ""
 
 clean:
-	rm -f $(TESTS) $(BENCHMARK) $(TSS_BIN) $(NET_TARGETS) $(API_TARGET) PQCgenKAT_sign PQCsignKAT_*.rsp PQCsignKAT_*.req
+	rm -f $(TSS_BIN) $(NET_TARGETS) $(API_TARGET)
