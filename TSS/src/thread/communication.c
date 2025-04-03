@@ -42,7 +42,7 @@ void keygen_player_recv_shares(thread_ctx* thread_ctx, BN_CTX* BNctx) {
             return NULL;
         }
     }
-    aggregate_shares(thread_ctx->sss_ctx->share, share_shards, BNctx);
+    aggregate_shares(thread_ctx->sss_ctx->share, share_shards, BNctx, PLAYERS);
 }
 
 void keygen_randome_agreement(thread_ctx* thread_ctx, BN_CTX* BNctx) {

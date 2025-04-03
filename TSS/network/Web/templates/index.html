@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP/Port Processor</title>
+    <style>
+        .form-group { margin-bottom: 15px; }
+        label { display: inline-block; width: 50px; }
+        input { padding: 5px; }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    <h1>IP/Port Processor</h1>
+    <form method="POST">
+        <h3>IP/Port 1</h3>
+        <div class="form-group">
+            <label for="ip1">IP:</label>
+            <input type="text" id="ip1" name="ip1" placeholder="e.g., 192.168.1.1" required>
+        </div>
+        <div class="form-group">
+            <label for="port1">Port:</label>
+            <input type="number" id="port1" name="port1" placeholder="e.g., 8080" required>
+        </div>
+
+        <h3>IP/Port 2</h3>
+        <div class="form-group">
+            <label for="ip2">IP:</label>
+            <input type="text" id="ip2" name="ip2" placeholder="e.g., 192.168.1.2" required>
+        </div>
+        <div class="form-group">
+            <label for="port2">Port:</label>
+            <input type="number" id="port2" name="port2" placeholder="e.g., 8081" required>
+        </div>
+
+        <h3>IP/Port 3</h3>
+        <div class="form-group">
+            <label for="ip3">IP:</label>
+            <input type="text" id="ip3" name="ip3" placeholder="e.g., 192.168.1.3" required>
+        </div>
+        <div class="form-group">
+            <label for="port3">Port:</label>
+            <input type="number" id="port3" name="port3" placeholder="e.g., 8082" required>
+        </div>
+
+        <button type="submit">Process</button>
+    </form>
+
+    {% if output %}
+    <div class="output">
+        <h3>Output:</h3>
+        {{ output }}
+    </div>
+    {% endif %}
+</body>
+</html>

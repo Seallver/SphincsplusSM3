@@ -211,8 +211,8 @@ int tss_sign_WOTS_ttp(unsigned char* pk, unsigned char* root, uint32_t* wots_add
 /**
  * Verifies a detached signature and message under a given public key.
  */
-int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
-                       const uint8_t *m, size_t mlen, const uint8_t *pk)
+int tss_crypto_sign_verify(const uint8_t* sig, size_t siglen,
+    const uint8_t* m, size_t mlen, const uint8_t* pk, int t)
 {
     spx_ctx ctx;
     const unsigned char *pub_root = pk + SPX_N;
@@ -267,7 +267,7 @@ int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
 
         copy_keypair_addr(wots_pk_addr, wots_addr);
 
-        if (i == SPX_D - 1 || (i + 1 == threshold[j] && j < THRESHOLD)) {
+        if (i == SPX_D - 1 || (i + 1 == threshold[j] && j < t)) {
             j++;
             /* The WOTS public key is only correct if the signature was correct. */
             /* Initially, root is the FORS pk, but on subsequent iterations it is

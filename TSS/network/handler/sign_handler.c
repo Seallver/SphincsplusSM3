@@ -135,7 +135,7 @@ void aggregate_seed(SignNet_ctx* ctx) {
     BIGNUM* sum = BN_new();
     BN_CTX* BNctx = BN_CTX_new();
     BN_zero(sum);
-    for (int i = 1;i <= PLAYERS;i++) {
+    for (int i = 1;i <= ctx->n;i++) {
         BN_mod_add(sum, sum, ctx->tmp_shares[i], prime, BNctx);
     }
     unsigned char* seed = (unsigned char*)malloc(BN_num_bytes(sum));
@@ -281,7 +281,7 @@ int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
         return -1;
     }
     int index;
-    for (int i = 0;i < THRESHOLD;i++)
+    for (int i = 0;i < ctx->t;i++)
         if (threshold[i] == srv_id)
             index = i;
     ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
@@ -309,7 +309,7 @@ int listen_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
         return -1;
     }
     int index;
-    for (int i = 0;i < THRESHOLD;i++)
+    for (int i = 0;i < ctx->t;i++)
         if (threshold[i] == srv_id)
             index = i;
     ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
@@ -349,9 +349,9 @@ int final_sig(SignNet_ctx* ctx, int sock, int srv_id) {
     // }
     // printf("\n");
 
-    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD);
+    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (ctx->t);
     memcpy(ctx->sm, buf, len);
-    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (THRESHOLD);
+    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (ctx->t);
 
     close(sock);
     SAFE_FREE(buf);

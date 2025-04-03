@@ -5,7 +5,7 @@
 
 
 BIGNUM* prime;
-int threshold[PLAYERS];
+int threshold[SPX_D - 1];
 pthread_barrier_t barrier;
 
 void init_params() {

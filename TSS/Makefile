@@ -85,15 +85,27 @@ NET_SOURCES  = $(SOURCES) \
 NET_HEADERS = $(HEADERS) include/TSS_api.h \
               $(wildcard network/*/*.h network/*.h)
 
+# ======================
+#  API Shared Library
+# ======================
+API_OUTPUT_DIR = network/Web
+API_TARGET = $(API_OUTPUT_DIR)/libtssapi.so
+API_SOURCES = $(NET_SOURCES) \
+              network/Web/api/keygen_api.c \
+              network/Web/api/sign_api.c
+
+API_HEADERS = $(NET_HEADERS)
+
+
 # ================
 #  Build Targets
 # ================
-.PHONY: all clean test benchmark tss nets print_params
+.PHONY: all clean test benchmark tss nets print_params api
 
-all: PQCgenKAT_sign tests benchmarks
+all: PQCgenKAT_sign test benchmark api nets
 
 # -- Main Targets --
-PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(SOURCES:randombytes%=rng%) 
+PQCgenKAT_sign: test/KAT/PQCgenKAT_sign.c $(filter-out src/utils/randombytes.c,$(SOURCES)) src/utils/rng.c $(HEADERS)
 	@$(CC) $(CFLAGS) -o $@ $^ -lcrypto
 
 # -- Test Targets --
@@ -117,6 +129,11 @@ $(NET_TARGETS): %: %.c $(NET_SOURCES) $(NET_HEADERS)
 	@echo "Compiling $@..."
 	@$(CC) $(CFLAGS) -DTSS -o $@ $< $(filter-out $<,$^) $(LDLIBS)
 
+# -- API Shared Library --
+$(API_TARGET): $(API_SOURCES) $(API_HEADERS)
+	@echo "Building TSS API shared library..."
+	@$(CC) $(CFLAGS) -fPIC -shared -o $@ $(API_SOURCES) $(LDLIBS) 
+
 # ================
 #  Execution Helpers
 # ================
@@ -129,6 +146,8 @@ benchmark: print_params $(BENCHMARK).exec
 tss: print_params $(TSS_BIN).exec
 
 nets: $(NET_TARGETS)
+
+api: $(API_TARGET)
 
 # ================
 #  Utilities
@@ -143,5 +162,4 @@ print_params:
 	printf "%0.s=" $$(seq 1 $$border_len); echo ""
 
 clean:
-	rm -f $(TESTS) $(BENCHMARK) $(TSS_BIN) $(NET_TARGETS) PQCgenKAT_sign \
-	      PQCsignKAT_*.rsp PQCsignKAT_*.req
+	rm -f $(TESTS) $(BENCHMARK) $(TSS_BIN) $(NET_TARGETS) $(API_TARGET) PQCgenKAT_sign PQCsignKAT_*.rsp PQCsignKAT_*.req

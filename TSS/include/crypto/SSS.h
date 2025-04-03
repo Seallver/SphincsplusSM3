@@ -22,7 +22,7 @@ typedef struct
 } SSS_ctx;
 
 // 初始化SSS上下文，独立生成秘密和多项式系数
-void SSS_init(SSS_ctx* ctx);
+void SSS_init(SSS_ctx* ctx,int n);
 
 //生成随机秘密
 void generate_secret(BIGNUM* secret);
@@ -37,13 +37,13 @@ void generate_coefficients(BIGNUM** coeffs, const BIGNUM *secret,  BN_CTX *ctx);
 void evaluate_poly(BIGNUM *result, BIGNUM** coeffs,const BIGNUM *x,  BN_CTX *ctx);
 
 // 生成共享份额，即i发送给j的份额f_i(j)
-void generate_shares(BIGNUM** shares, BIGNUM** coeffs,  BN_CTX *ctx);
+void generate_shares(BIGNUM** shares, BIGNUM** coeffs,  BN_CTX *ctx, int n);
 
 //聚合共享份额，计算出y_i
-void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards, BN_CTX* ctx);
+void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards, BN_CTX* ctx, int n);
 
 //生成门限签名聚合阶段的聚合分片y_i*l_i
-void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid);
+void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid, int t);
 
 //累加份额恢复私钥，用于keygen和sign的TTP
 void recover_secret(BIGNUM* secret, BIGNUM** shards, int shards_len);

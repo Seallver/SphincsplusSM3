@@ -45,7 +45,7 @@ void keygen_round_ttp(thread_ctx* thread_ctx) {
 void keygen_round_player(thread_ctx* thread_ctx) {
     //声明并初始化SSS参数
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
-    SSS_init(sss_ctx);
+    SSS_init(sss_ctx, PLAYERS);
     thread_ctx->sss_ctx = sss_ctx;
     
     BN_CTX* BNctx = BN_CTX_new();
@@ -54,7 +54,7 @@ void keygen_round_player(thread_ctx* thread_ctx) {
     for(int i = 1; i < PLAYERS + 1; i++) {
         tmp_shares[i] = BN_new();
     }
-    generate_shares(tmp_shares, sss_ctx->coeffs, BNctx);
+    generate_shares(tmp_shares, sss_ctx->coeffs, BNctx, PLAYERS);
 
     //p2p传递共享份额
     keygen_player_p2p_shares(thread_ctx, tmp_shares);
@@ -87,7 +87,7 @@ void presign_round_player(thread_ctx* ctx) {
     //计算门限份额
     BIGNUM* shares = BN_new();
     BN_copy(shares, ctx->sss_ctx->share);
-    generate_threshold_shards(ctx->sss_ctx->share, shares, ctx->tid);
+    generate_threshold_shards(ctx->sss_ctx->share, shares, ctx->tid, THRESHOLD);
 
     //向第三方发送共享秘密份额
     presign_player_p2ttp_shards(ctx);
@@ -238,7 +238,7 @@ int vrfy_round_player(thread_ctx* ctx) {
     memmove(ctx->sm + SPX_BYTES, ctx->m, ctx->mlen);
 
     //验证签名
-    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk)) {
+    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk,THRESHOLD)) {
         return -1;
     }
     return 0;

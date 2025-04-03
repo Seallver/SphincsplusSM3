@@ -2,7 +2,7 @@
 
 
 
-void SSS_init(SSS_ctx* ctx) {
+void SSS_init(SSS_ctx* ctx, int n) {
     BN_CTX *BNctx = BN_CTX_new();
 
     ctx->secret = BN_new();
@@ -18,8 +18,8 @@ void SSS_init(SSS_ctx* ctx) {
         exit(1);
     }
 
-    ctx->random_list = (BIGNUM**)malloc((PLAYERS + 1) *sizeof(BIGNUM*));
-    for (int i = 0; i < PLAYERS + 1; i++) {
+    ctx->random_list = (BIGNUM**)malloc((n + 1) *sizeof(BIGNUM*));
+    for (int i = 0; i < n + 1; i++) {
         ctx->random_list[i] = BN_new();
         BN_rand_range(ctx->random_list[i], prime);
     }
@@ -80,10 +80,10 @@ void evaluate_poly(BIGNUM* result, BIGNUM** coeffs, const BIGNUM* x, BN_CTX* ctx
     BN_free(x_pow);
 }
 
-void generate_shares(BIGNUM** shares, BIGNUM** coeffs, BN_CTX* ctx) {
+void generate_shares(BIGNUM** shares, BIGNUM** coeffs, BN_CTX* ctx, int n) {
     BIGNUM* index = BN_new();
 
-    for (int i = 1; i <= PLAYERS; i++) {
+    for (int i = 1; i <= n; i++) {
         BN_set_word(index, (unsigned long)i);
         evaluate_poly(shares[i], coeffs, index, ctx);
     }
@@ -91,18 +91,18 @@ void generate_shares(BIGNUM** shares, BIGNUM** coeffs, BN_CTX* ctx) {
     BN_free(index);
 }
 
-void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards, BN_CTX* ctx) {
+void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards, BN_CTX* ctx, int n) {
     BIGNUM* tmp = BN_new();
     BN_zero(tmp);
     //累加f_i(j)得到y_j
-    for (int i = 0; i < PLAYERS; i++) {
+    for (int i = 0; i < n; i++) {
         BN_mod_add(tmp, tmp, shares_shards[i], prime, ctx);
     }
     BN_copy(shares, tmp);
     BN_free(tmp);
 }
 
-void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid) {
+void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid, int t) {
     BN_CTX *ctx = BN_CTX_new();
     //获取x_k，初始化l_k
     BIGNUM* x_k = BN_new();
@@ -112,7 +112,7 @@ void generate_threshold_shards(BIGNUM* shards, BIGNUM* shares, int tid) {
     BN_one(l_k);
 
     //计算l_k
-    for (size_t j = 0;j < THRESHOLD;j++) {
+    for (size_t j = 0;j < t;j++) {
         if (threshold[j] == tid)continue;
         //获取x_j
         BIGNUM* x_j = BN_new();

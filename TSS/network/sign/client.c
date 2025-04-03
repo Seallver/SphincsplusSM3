@@ -6,7 +6,7 @@
 #include "Json.h"
 
 BIGNUM* prime;
-int threshold[PLAYERS];
+int threshold[SPX_D - 1];
 pthread_barrier_t barrier;
 
 void init_params() {
@@ -48,6 +48,9 @@ int main(int argc, char* argv[]) {
 
     printf("IP: %s\n", ctx->local_ip);
 
+    ctx->t = THRESHOLD;
+    ctx->n = PLAYERS;
+
     for (int i = 0; i <= PLAYERS; i++) {
         memcpy(ctx->ip_[i], IP[i], strlen(IP[i]));
         ctx->port_[i] = port[i];
@@ -69,7 +72,7 @@ int main(int argc, char* argv[]) {
         printf("Results saved successfully\n");
     }
 
-    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk)) {
+    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk,ctx->t)) {
         printf("vrfy failed\n");
         return -1;
     }

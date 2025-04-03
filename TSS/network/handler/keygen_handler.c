@@ -158,7 +158,7 @@ int player_handler_send_ttp(KeygenNet_ctx* ctx, int sock, int srv_id) {
     
     BIGNUM* blinding_shard = BN_new();
     BN_copy(blinding_shard, ctx->sss_ctx->secret);
-    for (int i = 1;i <= PLAYERS;i++) {
+    for (int i = 1;i <= ctx->n;i++) {
         if (i < ctx->party_id) {
             BN_mod_add(blinding_shard, blinding_shard, ctx->sss_ctx->random_list[i], prime, BNctx);
         }
@@ -203,7 +203,7 @@ void complete_pk(KeygenNet_ctx* ctx) {
     BIGNUM* sum = BN_new();
     BN_CTX* BNctx = BN_CTX_new();
     BN_zero(sum);
-    for (int i = 1;i <= PLAYERS;i++) {
+    for (int i = 1;i <= ctx->n;i++) {
         BN_mod_add(sum, sum, ctx->tmp_shares[i], prime, BNctx);
     }
     unsigned char* seed = (unsigned char*)malloc(BN_num_bytes(sum));

@@ -76,7 +76,8 @@
         "sign_connection.h": "c",
         "sign_handler.h": "c",
         "chrono": "c",
-        "thread": "c"
+        "thread": "c",
+        "buffer.h": "c"
     },
     "makefile.makefilePath": "/home/seallver/SphincsplusSM3/threshold/Makefile",
     "makefile.makePath": ""

@@ -3,6 +3,10 @@
 
 #include "SSS.h"
 typedef struct {
+    //门限签名信息
+    int t;
+    int n;
+
     //net信息
     int party_id;
     char* local_ip;
@@ -26,6 +30,11 @@ typedef struct {
 } KeygenNet_ctx;
 
 typedef struct {
+    //门限签名信息
+    int t;
+    int n;
+
+    //net信息
     int party_id;
     char* local_ip;
     int port;

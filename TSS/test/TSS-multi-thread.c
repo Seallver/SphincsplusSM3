@@ -9,7 +9,7 @@
 
 BIGNUM* prime;
 pthread_barrier_t barrier;
-int threshold[PLAYERS];
+int threshold[SPX_D - 1];
 
 
 #define SPX_MLEN 512

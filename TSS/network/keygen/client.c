@@ -7,7 +7,7 @@
 #include "Json.h"
 
 BIGNUM* prime;
-int threshold[PLAYERS];
+int threshold[SPX_D - 1];
 pthread_barrier_t barrier;
 
 void init_params() {
@@ -32,8 +32,11 @@ int main(int argc, char* argv[]) {
     //初始化上下文参数
     KeygenNet_ctx* ctx = (KeygenNet_ctx*)malloc(sizeof(KeygenNet_ctx));
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
-    SSS_init(sss_ctx);
+    SSS_init(sss_ctx,PLAYERS);
     ctx->sss_ctx = sss_ctx;
+
+    ctx->t = THRESHOLD;
+    ctx->n = PLAYERS;
 
     for (int i = 0; i <= PLAYERS; i++) {
         memcpy(ctx->ip_[i], IP[i], strlen(IP[i]));

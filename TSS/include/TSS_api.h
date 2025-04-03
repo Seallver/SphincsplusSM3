@@ -54,7 +54,7 @@ int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk, const unsigned
  * Verifies a detached signature and message under a given public key.
  */
 int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
-                       const uint8_t *m, size_t mlen, const uint8_t *pk);
+                       const uint8_t *m, size_t mlen, const uint8_t *pk, int t);
 
 
 //用于预签名阶段TTP生成R

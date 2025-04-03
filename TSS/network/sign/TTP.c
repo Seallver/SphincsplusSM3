@@ -5,7 +5,7 @@
 #include "net_settings.h"
 
 BIGNUM* prime;
-int threshold[PLAYERS];
+int threshold[SPX_D - 1];
 pthread_barrier_t barrier;
 
 void init_params() {
@@ -30,6 +30,9 @@ int main() {
         memcpy(ctx->ip_[i], IP[i], strlen(IP[i]));
         ctx->port_[i] = port[i];
     }
+
+    ctx->t = THRESHOLD;
+    ctx->n = PLAYERS;
 
     ctx->party_id = 0;
     ctx->local_ip = malloc(strlen(IP[0]) + 1);

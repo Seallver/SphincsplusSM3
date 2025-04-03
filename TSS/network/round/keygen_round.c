@@ -4,11 +4,11 @@
 int keygen_round_player(KeygenNet_ctx* ctx) {
     BN_CTX* BNctx = BN_CTX_new();
     //生成共享份额
-    ctx->tmp_shares = (BIGNUM**)malloc((PLAYERS + 1) * sizeof(BIGNUM*));
-    for(int i = 1; i <= PLAYERS; i++) {
+    ctx->tmp_shares = (BIGNUM**)malloc((ctx->n + 1) * sizeof(BIGNUM*));
+    for(int i = 1; i <= ctx->n; i++) {
         ctx->tmp_shares[i] = BN_new();
     }
-    generate_shares(ctx->tmp_shares, ctx->sss_ctx->coeffs, BNctx);
+    generate_shares(ctx->tmp_shares, ctx->sss_ctx->coeffs, BNctx, ctx->n);
     
     //监听本机端口，等待连接，P2P交换共享份额
     int conn_numbers = ctx->party_id - 1;
@@ -16,12 +16,12 @@ int keygen_round_player(KeygenNet_ctx* ctx) {
         keygen_listen_local_port(ctx, conn_numbers, player_handler_recv);
 
     //主动与其他参与方建立连接
-    for (int i = ctx->party_id + 1; i <= PLAYERS; i++) {
+    for (int i = ctx->party_id + 1; i <= ctx->n; i++) {
         keygen_create_connection_p2p(ctx->ip_[i], ctx->port_[i], ctx, player_handler_send);
     }
 
     //聚合共享份额
-    aggregate_shares(ctx->sss_ctx->share, ctx->tmp_shares + 1, BNctx);
+    aggregate_shares(ctx->sss_ctx->share, ctx->tmp_shares + 1, BNctx, ctx->n);
 
     //发送盲化后的份额给ttp，并接收公钥
     keygen_create_connection_p2p(ctx->ip_[0], ctx->port_[0], ctx, player_handler_send_ttp);
@@ -31,8 +31,8 @@ int keygen_round_player(KeygenNet_ctx* ctx) {
 }
 
 int keygen_round_ttp(KeygenNet_ctx* ctx) {
-    ctx->tmp_shares = (BIGNUM**)malloc((PLAYERS + 1) * sizeof(BIGNUM*));
-    for(int i = 1; i <= PLAYERS; i++) {
+    ctx->tmp_shares = (BIGNUM**)malloc((ctx->n + 1) * sizeof(BIGNUM*));
+    for(int i = 1; i <= ctx->n; i++) {
         ctx->tmp_shares[i] = BN_new();
     }
 
@@ -41,7 +41,7 @@ int keygen_round_ttp(KeygenNet_ctx* ctx) {
     pthread_create(&thread, NULL, complete_pk, ctx);
 
     //监听本机端口，等待连接，此次连接需要收集盲化后的私钥分片并聚合，然后生成公钥再发回去
-    int conn_numbers = PLAYERS;
+    int conn_numbers = ctx->n;
     keygen_listen_local_port(ctx, conn_numbers, ttp_handler_recv);
 
     return 0;
