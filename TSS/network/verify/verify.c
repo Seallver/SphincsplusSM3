@@ -68,15 +68,17 @@ int main(int argc, char* argv[]) {
     int smlen;
     int mlen;
     unsigned char pk[SPX_PK_BYTES];
-    if (load_sm(pk, &sm, &smlen, &mlen, argv[1])) {
+    if (load_sm(pk, &sm, &smlen, &mlen, argv[1], SPX_BYTES)) {
         printf("Failed to load sm\n");
         return -1;
     }
 
     print_sigma(sm);
 
+    printf("smlen = %d\n", SPX_BYTES);
+
     //验证签名
-    if (tss_crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, mlen, pk)) {
+    if (tss_crypto_sign_verify(sm, SPX_BYTES, sm + SPX_BYTES, mlen, pk, THRESHOLD)) {
         printf("vrfy failed\n");
         return -1;
     }

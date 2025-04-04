@@ -77,7 +77,7 @@ cJSON* keygen_ctx_to_json(const KeygenNet_ctx* ctx) {
 
 
 // 序列化SignNet_ctx结构体
-cJSON* sig_to_json(const SignNet_ctx* ctx) {
+cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes) {
     cJSON* json = cJSON_CreateObject();
     if (!json) return NULL;
 
@@ -90,7 +90,7 @@ cJSON* sig_to_json(const SignNet_ctx* ctx) {
     free(pk_base64);
 
     // 序列化签名（Base64编码）
-    char* sig_base64 = base64_encode(ctx->sm, SPX_BYTES + ctx->mlen);
+    char* sig_base64 = base64_encode(ctx->sm, spx_bytes + ctx->mlen);
     cJSON_AddStringToObject(json, "Sig", sig_base64);
     free(sig_base64);
 
@@ -105,6 +105,7 @@ int save_ctx_to_file(const KeygenNet_ctx* ctx, const char* filename) {
     char* json_str = cJSON_Print(json);
     FILE* fp = fopen(filename, "w");
     if (!fp) {
+        perror("fopen 失败");
         cJSON_Delete(json);
         free(json_str);
         return -1;
@@ -119,8 +120,8 @@ int save_ctx_to_file(const KeygenNet_ctx* ctx, const char* filename) {
 }
 
 //sign结果写入JSON文件
-int save_sig_to_file(const SignNet_ctx* ctx, const char* filename) {
-    cJSON* json = sig_to_json(ctx);
+int save_sig_to_file(const SignNet_ctx* ctx, const char* filename, int spx_bytes) {
+    cJSON* json = sig_to_json(ctx, spx_bytes);
     if (!json) return -1;
 
     char* json_str = cJSON_Print(json);
@@ -217,7 +218,7 @@ int load_ctx_from_file(SignNet_ctx* ctx, const char* filename) {
 }
 
 // 从JSON解析出sm
-int load_sm(unsigned char* pk, unsigned char** sm, int* smlen, int* mlen, const char* filename) {
+int load_sm(unsigned char* pk, unsigned char** sm, int* smlen, int* mlen, const char* filename, int spx_bytes) {
     FILE* fp = fopen(filename, "r");
     if (!fp) return -1;
 
@@ -247,7 +248,7 @@ int load_sm(unsigned char* pk, unsigned char** sm, int* smlen, int* mlen, const 
     if (item && cJSON_IsString(item)) {
         size_t len;
         unsigned char* decoded = base64_decode(item->valuestring, &len);
-        if(len != SPX_BYTES + *mlen) {
+        if(len != spx_bytes + *mlen) {
             fprintf(stderr, "Invalid signature length\n");
             return -1;
         }

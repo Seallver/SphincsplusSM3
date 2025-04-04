@@ -20,7 +20,15 @@ int sign_round_player(SignNet_ctx* ctx) {
     memset(ctx->wots_addr, 0, sizeof(ctx->wots_addr));
     memset(ctx->tree_addr, 0, sizeof(ctx->tree_addr));
 
+ 
+    for (int i = 0;i < SPX_N;i++) {
+        ctx->root[i] = 0;
+    }
+
+
+
     tss_sign_FORS(ctx->sk, ctx->pk, ctx->wots_addr, ctx->mhash, ctx->root, ctx->m, ctx->sm, &ctx->smlen, ctx->mlen, &ctx->tree, &ctx->idx_leaf);
+
     ctx->sm += SPX_N + SPX_FORS_BYTES;
 
     //计算出自己WOTS签名的地址

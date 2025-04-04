@@ -86,8 +86,7 @@ int player_conn_to_ttp(SignNet_ctx* ctx, int sock, int srv_id) {
         SAFE_FREE(buf);
         return -1;
     }
-    memcpy(ctx->fors_seed, buf, len);
-
+    memcpy(ctx->sk, buf, len);
 
     BN_CTX_free(BNctx);
     close(sock);
@@ -124,6 +123,7 @@ int ttp_listen_player(SignNet_ctx* ctx, int sock, int srv_id) {
         perror("send failed");
         return -1;
     }
+
     return 0;
 }
 

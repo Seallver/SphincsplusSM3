@@ -81,7 +81,7 @@ NET_SOURCES  = $(SOURCES) \
                network/round/sign_round.c \
                network/data/Json.c
 
-NET_HEADERS = $(HEADERS) include/TSS_api.h \
+NET_HEADERS = $(TSS_HEADERS) \
               $(wildcard network/*/*.h network/*.h)
 
 # ======================
@@ -90,8 +90,7 @@ NET_HEADERS = $(HEADERS) include/TSS_api.h \
 API_OUTPUT_DIR = network/Web
 API_TARGET = $(API_OUTPUT_DIR)/libtssapi.so
 API_SOURCES = $(NET_SOURCES) \
-              network/Web/api/keygen_api.c \
-              network/Web/api/sign_api.c
+              network/Web/Web_api.c
 
 API_HEADERS = $(NET_HEADERS)
 
@@ -104,8 +103,8 @@ API_HEADERS = $(NET_HEADERS)
 all:  test tss api nets 
 
 # -- TSS Target --
-TSS_BIN = test/TSS-multi-thread
-$(TSS_BIN): test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
+TSS_BIN = multi_thread_test/TSS-multi-thread
+$(TSS_BIN): multi_thread_test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
 	@$(CC) $(CFLAGS) -DTSS -o $@ $^ $(LDLIBS)
 
 # -- Network Targets --
@@ -120,7 +119,7 @@ LDFLAGS = -Wl,--exclude-libs,ALL
 
 $(API_TARGET): $(API_SOURCES) $(API_HEADERS)
 	@echo "Building TSS API shared library..."
-	@$(CC) $(API_CFLAGS) -shared -o $@ $^ $(LDFLAGS) $(LDLIBS)
+	@$(CC) $(API_CFLAGS) -DTSS -shared -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 # ================
 #  Execution Helpers

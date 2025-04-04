@@ -8,8 +8,9 @@ int keygen_round_player(KeygenNet_ctx* ctx) {
     for(int i = 1; i <= ctx->n; i++) {
         ctx->tmp_shares[i] = BN_new();
     }
-    generate_shares(ctx->tmp_shares, ctx->sss_ctx->coeffs, BNctx, ctx->n);
-    
+
+
+    generate_shares(ctx->tmp_shares, ctx->sss_ctx->coeffs, BNctx, ctx->n, ctx->t);
     //监听本机端口，等待连接，P2P交换共享份额
     int conn_numbers = ctx->party_id - 1;
     if (conn_numbers)

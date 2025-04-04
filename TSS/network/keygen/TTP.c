@@ -27,7 +27,7 @@ int main() {
     //初始化上下文参数
     KeygenNet_ctx* ctx = (KeygenNet_ctx*)malloc(sizeof(KeygenNet_ctx));
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
-    SSS_init(sss_ctx, PLAYERS);
+    SSS_init(sss_ctx, PLAYERS,THRESHOLD - 1);
     ctx->sss_ctx = sss_ctx;
 
     ctx->t = THRESHOLD;

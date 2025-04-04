@@ -24,8 +24,8 @@ typedef struct {
     BIGNUM* tmp_seed;
 
     //参与方的IP地址和端口
-    char ip_[PLAYERS + 1][20];
-    int port_[PLAYERS + 1];
+    char ip_[SPX_D][20];
+    int port_[SPX_D];
 
 } KeygenNet_ctx;
 
@@ -66,8 +66,8 @@ typedef struct {
     unsigned char* sig_shard;
 
     //参与方的IP地址和端口
-    char ip_[PLAYERS + 1][20];
-    int port_[PLAYERS + 1];
+    char ip_[SPX_D][20];
+    int port_[SPX_D];
 
 } SignNet_ctx;
 

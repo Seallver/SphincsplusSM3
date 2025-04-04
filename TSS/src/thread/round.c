@@ -45,7 +45,7 @@ void keygen_round_ttp(thread_ctx* thread_ctx) {
 void keygen_round_player(thread_ctx* thread_ctx) {
     //声明并初始化SSS参数
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
-    SSS_init(sss_ctx, PLAYERS);
+    SSS_init(sss_ctx, PLAYERS, THRESHOLD - 1);
     thread_ctx->sss_ctx = sss_ctx;
     
     BN_CTX* BNctx = BN_CTX_new();
@@ -54,7 +54,7 @@ void keygen_round_player(thread_ctx* thread_ctx) {
     for(int i = 1; i < PLAYERS + 1; i++) {
         tmp_shares[i] = BN_new();
     }
-    generate_shares(tmp_shares, sss_ctx->coeffs, BNctx, PLAYERS);
+    generate_shares(tmp_shares, sss_ctx->coeffs, BNctx, PLAYERS, THRESHOLD);
 
     //p2p传递共享份额
     keygen_player_p2p_shares(thread_ctx, tmp_shares);

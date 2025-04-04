@@ -61,7 +61,7 @@ void keygen_listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handle
         exit(EXIT_FAILURE);
     }
 
-    printf("party %d listening on port %d...\n", ctx->party_id, ctx->port);
+    printf("[P%d] listening on port %d...\n", ctx->party_id, ctx->port);
 
     // 循环接受多个连接
     while (conn_numbers--) {
@@ -79,7 +79,7 @@ void keygen_listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handle
         int dst_id = receive_connection_id(client_sock);
 
         if (send_connection_id(client_sock, ctx->party_id)) {
-            printf("send connection id error\n");
+            printf("[P%d] send connection id error\n", ctx->party_id);
             exit(EXIT_FAILURE);
         }
 
@@ -91,7 +91,6 @@ void keygen_listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handle
         args->sock = client_sock;
         args->srv_id = dst_id;
         args->handler_func = handler_func;
-
         threadpool_add_task(&pool, (void*)thread_func, args);
 
     }
@@ -99,6 +98,7 @@ void keygen_listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handle
     threadpool_destroy(&pool);
     close(server_fd);
 }
+
 
 void keygen_create_connection_p2p(char* dst_ip, int dst_port, KeygenNet_ctx* ctx, int (*handler_func)(KeygenNet_ctx*, int, int)) {
     int sockfd = -1;
@@ -143,19 +143,19 @@ void keygen_create_connection_p2p(char* dst_ip, int dst_port, KeygenNet_ctx* ctx
         exit(EXIT_FAILURE);
     }
     
-    printf("Connecting to %s:%d...\n", dst_ip, dst_port);
+    printf("[P%d] Connecting to %s:%d...\n",ctx->party_id, dst_ip, dst_port);
     
     // 重试逻辑（非阻塞+超时控制）
     for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         // 尝试连接
         if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0) {
-            // printf("Connected successfully!\n");
+            // printf("[P%d] Connected successfully!\n", ctx->party_id);
             break;
         }
         
         // 连接失败处理
         if (attempt < MAX_RETRIES) {
-            // printf("Connection failed (attempt %d/%d), retrying in %d sec...\n", 
+            // printf("[P%d] Connection failed (attempt %d/%d), retrying in %d sec...\n", ctx->party_id,
             //       attempt, MAX_RETRIES, RETRY_DELAY);
             sleep(RETRY_DELAY);
         } else {
@@ -173,11 +173,11 @@ void keygen_create_connection_p2p(char* dst_ip, int dst_port, KeygenNet_ctx* ctx
 
     int ret = handler_func(ctx, sockfd, dst_id);
     if (ret) {
-        printf("keygen handler error\n");
+        printf("[P%d] keygen handler error\n", ctx->party_id);
     }
 
     // 安全关闭连接
     shutdown(sockfd, SHUT_RDWR); // 关闭双向通信
     
-    // printf("Connection closed\n");
+    // printf("[P%d] Connection closed\n", ctx->party_id);
 }

@@ -10,7 +10,7 @@
 
 
 /* TSS */
-#define PLAYERS 4 //参与方数
+#define PLAYERS 3 //参与方数
 #define THRESHOLD PLAYERS - 1 //门限数
 
 #ifdef TSS

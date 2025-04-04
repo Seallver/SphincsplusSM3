@@ -11,7 +11,7 @@
 
 // 质数相关参数
 #define MIN_PRIME_BITS 3 * SPX_N * 8   // 最小质数位数
-#define DEGREE THRESHOLD - 1
+
 
 typedef struct
 {
@@ -22,7 +22,7 @@ typedef struct
 } SSS_ctx;
 
 // 初始化SSS上下文，独立生成秘密和多项式系数
-void SSS_init(SSS_ctx* ctx,int n);
+void SSS_init(SSS_ctx* ctx,int n,int degree);
 
 //生成随机秘密
 void generate_secret(BIGNUM* secret);
@@ -31,13 +31,13 @@ void generate_secret(BIGNUM* secret);
 void init_crypto_params(BIGNUM* PRIME);
 
 // 生成多项式系数
-void generate_coefficients(BIGNUM** coeffs, const BIGNUM *secret,  BN_CTX *ctx);
+void generate_coefficients(BIGNUM** coeffs, const BIGNUM *secret,int degree,  BN_CTX *ctx);
 
 // 多项式求值
-void evaluate_poly(BIGNUM *result, BIGNUM** coeffs,const BIGNUM *x,  BN_CTX *ctx);
+void evaluate_poly(BIGNUM *result, BIGNUM** coeffs,const BIGNUM *x,int degree,  BN_CTX *ctx);
 
 // 生成共享份额，即i发送给j的份额f_i(j)
-void generate_shares(BIGNUM** shares, BIGNUM** coeffs,  BN_CTX *ctx, int n);
+void generate_shares(BIGNUM** shares, BIGNUM** coeffs,  BN_CTX *ctx, int n, int t);
 
 //聚合共享份额，计算出y_i
 void aggregate_shares(BIGNUM* shares, BIGNUM** shares_shards, BN_CTX* ctx, int n);

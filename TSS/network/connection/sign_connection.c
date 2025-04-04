@@ -61,7 +61,7 @@ void sign_listen_local_port(SignNet_ctx* ctx, int conn_numbers, int (*handler_fu
         exit(EXIT_FAILURE);
     }
 
-    printf("party %d listening on port %d...\n", ctx->party_id, ctx->port);
+    printf("[P%d] listening on port %d...\n", ctx->party_id, ctx->port);
 
     // 循环接受多个连接
     while (conn_numbers--) {
@@ -79,7 +79,7 @@ void sign_listen_local_port(SignNet_ctx* ctx, int conn_numbers, int (*handler_fu
         int dst_id = receive_connection_id(client_sock);
 
         if (send_connection_id(client_sock, ctx->party_id)) {
-            printf("send connection id error\n");
+            printf("[P%d] send connection id error\n", ctx->party_id);
             exit(EXIT_FAILURE);
         }
 
@@ -143,7 +143,7 @@ void sign_create_connection_p2p(char* dst_ip, int dst_port, SignNet_ctx* ctx, in
         exit(EXIT_FAILURE);
     }
     
-    printf("Connecting to %s:%d...\n", dst_ip, dst_port);
+    printf("[P%d] Connecting to %s:%d...\n",ctx->party_id, dst_ip, dst_port);
     
     // 重试逻辑（非阻塞+超时控制）
     for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -173,7 +173,7 @@ void sign_create_connection_p2p(char* dst_ip, int dst_port, SignNet_ctx* ctx, in
 
     int ret = handler_func(ctx, sockfd, dst_id);
     if (ret) {
-        printf("sign handler error\n");
+        printf("[P%d] sign handler error\n", ctx->party_id);
     }
 
     // 安全关闭连接

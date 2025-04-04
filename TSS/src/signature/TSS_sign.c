@@ -227,9 +227,9 @@ int tss_crypto_sign_verify(const uint8_t* sig, size_t siglen,
     uint32_t tree_addr[8] = {0};
     uint32_t wots_pk_addr[8] = {0};
 
-    if (siglen != SPX_BYTES) {
-        return -1;
-    }
+    // if (siglen != SPX_BYTES) {
+    //     return -1;
+    // }
 
 
     memcpy(ctx.pub_seed, pk, SPX_N);
@@ -253,8 +253,6 @@ int tss_crypto_sign_verify(const uint8_t* sig, size_t siglen,
 
     fors_pk_from_sig(root, sig, mhash, &ctx, wots_addr);
     sig += SPX_FORS_BYTES;
-
-
 
     int j = 0;
     /* For each subtree.. */

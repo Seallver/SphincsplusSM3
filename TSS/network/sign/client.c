@@ -66,13 +66,13 @@ int main(int argc, char* argv[]) {
 
     // 把keygen生成的关键数据输出(写入文件)
     snprintf(filename, sizeof(filename), "../data/party_%d_sig.json", ctx->party_id);    
-    if (save_sig_to_file(ctx, filename)) {
+    if (save_sig_to_file(ctx, filename, SPX_BYTES)) {
         printf("Failed to save context\n");
     } else {
         printf("Results saved successfully\n");
     }
-
-    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk,ctx->t)) {
+    
+    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk, ctx->t)) {
         printf("vrfy failed\n");
         return -1;
     }

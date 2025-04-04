@@ -8,8 +8,8 @@
 
 #define MAX_CLIENTS PLAYERS
 
-#define MAX_RETRIES 5 // 最大重试次数
-#define RETRY_DELAY 3  // 每次重试间隔（秒）
+#define MAX_RETRIES 10 // 最大重试次数
+#define RETRY_DELAY 2  // 每次重试间隔（秒）
 
 //保持端口监听
 void keygen_listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handler_func)(KeygenNet_ctx*, int, int));

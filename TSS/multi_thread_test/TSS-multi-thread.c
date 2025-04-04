@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#define TSS
 #include "params.h"
 
 #include "globals.h"

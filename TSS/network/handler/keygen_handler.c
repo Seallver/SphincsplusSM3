@@ -76,6 +76,7 @@ int ttp_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id) {
 }
 
 int player_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id) {
+    if (!ctx || srv_id < 0) return -1;
     // 1. 接收共享份额
     BIGNUM* my_shares = BN_new();
     if (recv_bignum(sock, my_shares) != 0) {
@@ -89,7 +90,6 @@ int player_handler_recv(KeygenNet_ctx* ctx, int sock, int srv_id) {
         return -1;
     }
     BN_copy(ctx->tmp_shares[srv_id], my_shares);
-
 
     // 3. 接收随机数
     BIGNUM * tmp = BN_new();
@@ -117,7 +117,8 @@ int player_handler_send(KeygenNet_ctx* ctx, int sock, int srv_id) {
     if (!ctx || srv_id < 0) return -1;
 
     // 1. 发送共享份额
-    if (send_bignum(sock, ctx->tmp_shares[srv_id]) != 0) {
+    int len = send_bignum(sock, ctx->tmp_shares[srv_id]);
+    if (len != 0) {
         close(sock);
         return -1;
     }

@@ -14,7 +14,7 @@ void* thread_func(void* arg) {
     KeygenNet_ctx* ctx = args->ctx;
     int ret = func(ctx, sock, srv_id);
     if (ret) {
-        printf("keygen handler error\n");
+        printf("handler error\n");
     }
 }
 

@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Player API</title>
+    <title>TTP API</title>
 </head>
 <body>
-    <h1>Player API Form</h1>
-    <form method="POST" action="/player">
+    <h1>TTP API Form</h1>
+    <form method="POST" action="/keygen_ttp">
         <label>n: <input type="number" name="n" required></label><br>
         <label>t: <input type="number" name="t" required></label><br>
-        <label>Party ID: <input type="number" name="party_id" required></label><br>
         <label>Threshold IDs (comma separated): 
             <input type="text" name="threshold_ids" required>
         </label><br>
-        <label>IPs and Ports (comma separated, alternating IP and port): 
-            <input type="text" name="ip_ports" required>
+        <label>IPs(comma separated): 
+            <input type="text" name="ip" required>
+        </label><br>
+        <label>Ports (comma separated): 
+            <input type="text" name="port" required>
         </label><br>
         <button type="submit">Submit</button>
     </form>
