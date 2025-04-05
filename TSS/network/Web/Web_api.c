@@ -6,8 +6,8 @@
 #endif
 
 // 函数声明
-API_EXPORT int keygen_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[]);
-API_EXPORT int keygen_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]);
+API_EXPORT int keygen_playerAPI(int n, int t, int party_id,  char* ip_[], int port_[]);
+API_EXPORT int keygen_ttpAPI(int n, int t,  char* ip_[], int port_[]);
 API_EXPORT int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[]);
 API_EXPORT int sign_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]);
 
@@ -23,7 +23,7 @@ BIGNUM* prime;
 int threshold[SPX_D - 1];
 pthread_barrier_t barrier;
 
-int keygen_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[]) {
+int keygen_playerAPI(int n, int t, int party_id, char* ip_[], int port_[]) {
     if (n > SPX_D - 1 || n < 0) {
         printf("[P%d] n must be in [0, d)\n", party_id);
         return NULL;
@@ -46,12 +46,6 @@ int keygen_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int por
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
     SSS_init(sss_ctx, n, t - 1);
     ctx->sss_ctx = sss_ctx;
-
-
-
-    for (int i = 0; i < t; i++) {
-        threshold[i] = tid[i];
-    }
 
     for (int i = 0; i <= n; i++) {
         memcpy(ctx->ip_[i], ip_[i], strlen(ip_[i]) + 1);
@@ -81,7 +75,7 @@ int keygen_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int por
     return 0;
 }
 
-int keygen_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]) {
+int keygen_ttpAPI(int n, int t, char* ip_[], int port_[]) {
     if (n > SPX_D - 1 || n < 0) {
         printf("[P%d] n must be in [0, d)\n", 0);
         return NULL;
@@ -104,11 +98,6 @@ int keygen_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]) {
     SSS_ctx* sss_ctx = (SSS_ctx*)malloc(sizeof(SSS_ctx));
     SSS_init(sss_ctx, n, t - 1);
     ctx->sss_ctx = sss_ctx;
-
-
-    for (int i = 0; i < t; i++) {
-        threshold[i] = tid[i];
-    }
 
     for (int i = 0; i <= n; i++) {
         memcpy(ctx->ip_[i], ip_[i], strlen(ip_[i]) + 1);
@@ -189,6 +178,7 @@ int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_
         printf("[P%d] Results saved successfully\n", ctx->party_id);
     }
 
+    //验证签名
     if (tss_crypto_sign_verify(ctx->sm, spx_bytes, ctx->sm + spx_bytes, ctx->mlen, ctx->pk, ctx->t)) {
         printf("[P%d] vrfy failed\n", ctx->party_id);
         return -1;
@@ -244,3 +234,21 @@ int sign_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]) {
 
     return 0;
 }
+
+// int main(int t, int tid[], unsigned char* sm, int mlen, unsigned char* pk) {
+//     int spx_bytes = (SPX_N + SPX_FORS_BYTES + (t + 1) * SPX_WOTS_BYTES + \
+//         (t + 1) * SPX_TREE_HEIGHT * SPX_N);
+    
+//     for (int i = 0; i < t; i++) {
+//         threshold[i] = tid[i];
+//     }
+
+//     //验证签名
+//     if (tss_crypto_sign_verify(sm, spx_bytes, sm + spx_bytes, mlen, pk, t)) {
+//         printf("vrfy failed\n");
+//         return -1;
+//     }
+//     printf("vrfy success!\n");
+
+//     return 0;
+// }

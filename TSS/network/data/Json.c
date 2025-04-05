@@ -81,6 +81,8 @@ cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes) {
     cJSON* json = cJSON_CreateObject();
     if (!json) return NULL;
 
+    cJSON_AddNumberToObject(json, "t", ctx->t);
+
     cJSON_AddNumberToObject(json, "mlen", ctx->mlen);
     cJSON_AddNumberToObject(json, "smlen", ctx->smlen);
 
@@ -93,6 +95,8 @@ cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes) {
     char* sig_base64 = base64_encode(ctx->sm, spx_bytes + ctx->mlen);
     cJSON_AddStringToObject(json, "Sig", sig_base64);
     free(sig_base64);
+
+
 
     return json;
 }

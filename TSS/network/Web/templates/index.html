@@ -1,27 +1,104 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPX TSS</title>
-    <style>
-        .form-group { margin-bottom: 15px; }
-        label { display: inline-block; width: 50px; }
-        input { padding: 5px; }
-        .output {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            white-space: pre-line;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
-    <h1>TSS API Demo</h1>
-    <ul>
-        <li><a href="/keygen_player">Keygen Player API</a></li>
-        <li><a href="/keygen_ttp">Keygen TTP API</a></li>
-        <li><a href="/sign_player">Sign Player API</a></li>
-        <li><a href="/sign_ttp">Sign TTP API</a></li>
-    </ul>
+    <div class="container">
+        <h1>SPX TSS</h1>
+        <p id="instruction">请选择您需要的操作</p>
+        
+        <!-- 主按钮组 -->
+        <div class="button-group fade-in" id="main-buttons">
+            <button id="keygen">KeyGen</button>
+            <button id="sign">Sign</button>
+            <button id="verify">Verify</button>
+        </div>
+        
+        <!-- 角色选择按钮组 -->
+        <div class="button-group hidden" id="role-buttons">
+            <button id="ttp">as TTP</button>
+            <button id="player">as Player</button>
+            <button class="back-btn" id="back-to-main">返回</button>
+        </div>
+        
+        <!-- TTP表单 -->
+        <div class="form-group hidden" id="ttp-form">
+            <h3>TTP 配置</h3>
+            <div class="form-row">
+                <label for="ttp-n">n:</label>
+                <input type="number" id="ttp-n" min="1" placeholder="请输入参与者总数">
+            </div>
+            <div class="form-row">
+                <label for="ttp-t">t:</label>
+                <input type="number" id="ttp-t" min="1" placeholder="请输入门限数">
+            </div>
+            <div class="form-row threshold-ids-row">
+                <label for="ttp-threshold-ids">Threshold IDs:</label>
+                <textarea id="ttp-threshold-ids" placeholder="请按序输入所有门限方ID，形如(1,2,...)"></textarea>
+            </div>
+            <div class="form-row">
+                <label for="ttp-ips">IPs:</label>
+                <textarea id="ttp-ips" placeholder="请依次输入IP地址，形如(127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1,...)"></textarea>
+            </div>
+            <div class="form-row">
+                <label for="ttp-ports">Ports:</label>
+                <textarea id="ttp-ports" placeholder="请输入对应端口号，形如(10000,10001,10002,10003,...)"></textarea>
+            </div>
+            <button class="submit-btn" id="ttp-submit">提交</button>
+            <button class="back-btn" id="back-to-role-from-ttp">返回</button>
+        </div>
+        
+        <!-- Player表单 -->
+        <div class="form-group hidden" id="player-form">
+            <h3>Player 配置</h3>
+            <div class="form-row">
+                <label for="player-n">n:</label>
+                <input type="number" id="player-n" min="1" placeholder="请输入参与者总数">
+            </div>
+            <div class="form-row">
+                <label for="player-t">t:</label>
+                <input type="number" id="player-t" min="1" placeholder="请输入门限数">
+            </div>
+            <div class="form-row">
+                <label for="player-party-id">Party ID:</label>
+                <input type="number" id="player-party-id" min="1" placeholder="请输入参与者ID">
+            </div>
+            <div class="form-row threshold-ids-row">
+                <label for="player-threshold-ids">Threshold IDs:</label>
+                <textarea id="player-threshold-ids" placeholder="请按序输入所有门限方ID，形如(1,2,...)"></textarea>
+            </div>
+            <div class="form-row">
+                <label for="player-ips">IPs:</label>
+                <textarea id="player-ips" placeholder="请依次输入IP地址，形如(127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1,...)"></textarea>
+            </div>
+            <div class="form-row">
+                <label for="player-ports">Ports:</label>
+                <textarea id="player-ports" placeholder="请输入对应端口号，形如(10000,10001,10002,10003,...)"></textarea>
+            </div>
+            <button class="submit-btn" id="player-submit">提交</button>
+            <button class="back-btn" id="back-to-role-from-player">返回</button>
+        </div>
+        
+        <div class="status" id="status">
+            就绪
+        </div>
+    </div>
+    
+    <!-- 结果模态框 -->
+    <div class="result-modal" id="result-modal">
+        <div class="modal-content">
+            <h3 id="modal-title">操作结果</h3>
+            <div id="modal-message"></div>
+            <div id="modal-filename" class="filename-message"></div>
+            <div class="modal-actions">
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>

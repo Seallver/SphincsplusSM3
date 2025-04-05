@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request
 from ctypes import CDLL, Structure, c_int, c_char_p, POINTER, c_void_p, cast, create_string_buffer
 import os
 import argparse
+from flask import Flask, render_template, request, jsonify,send_from_directory
+from ctypes import *
+import json
 
-
-#gunicorn -w 4 -b 0.0.0.0:5000 app:app
+#gunicorn -w 20 -b 0.0.0.0:5000 app:app
 #sudo systemctl restart systemd-networkd
 #python3 app.py --port 5000 --debug
 
@@ -19,7 +20,6 @@ lib.keygen_playerAPI.argtypes = [
     c_int,                # n
     c_int,                # t
     c_int,                # party_id
-    POINTER(c_int),       # tid[] 数组指针
     POINTER(c_char_p),    # ip_[] 数组指针
     POINTER(c_int),       # port_[] 数组指针
 ]
@@ -28,7 +28,6 @@ lib.keygen_playerAPI.restype = c_int
 lib.keygen_ttpAPI.argtypes = [
     c_int,                # n
     c_int,                # t
-    POINTER(c_int),       # tid[] 数组指针
     POINTER(c_char_p),    # ip_[] 数组指针
     POINTER(c_int),       # port_[] 数组指针
 ]
@@ -54,227 +53,85 @@ lib.sign_ttpAPI.argtypes = [
 lib.sign_ttpAPI.restype = c_int
 
 
-@app.route('/keygen_player', methods=['GET', 'POST'])
-def keygen_player_api():
-    if request.method == 'POST':
-        try:
-            # 获取表单数据
-            n = int(request.form['n'])
-            t = int(request.form['t'])
-            party_id = int(request.form['party_id'])
-            # 处理数组型参数
-            threshold_ids = list(map(int, request.form['threshold_ids'].split(',')))
-            ips = request.form['ip'].split(',')          # 输入类似 "192.168.0.1,192.168.0.2,..."
-            ports = list(map(int, request.form['port'].split(',')))  # 输入类似 "12345,12346,..."
-
-            # 校验参数数量是否符合 C 函数要求
-            if len(threshold_ids) != t:
-                raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
-            if len(ips) != n + 1:  # 注意 C 函数循环是 i <= n，需要 n+1 个 IP
-                raise ValueError(f"需要 {n+1} 个 IP，收到 {len(ips)}")
-            if len(ports) != n + 1:
-                raise ValueError(f"需要 {n+1} 个端口，收到 {len(ports)}")
-
-            # 将 Python 数组转换为 ctypes 兼容类型
-            # (1) threshold_ids 转换为 c_int 数组
-            tid_array = (c_int * t)(*threshold_ids)
-
-            # (2). IP数组 - 确保每个IP以null结尾
-            ip_array = (c_char_p * (n + 1))()
-            for i, ip in enumerate(ips):
-                # 复制字符串并确保null结尾
-                ip_array[i] = create_string_buffer(ip.encode('utf-8')).raw
-
-            # (3) 端口转换为 c_int 数组
-            port_array = (c_int * (n + 1))(*ports)
-
-
-            # 调用 C 函数
-            result = lib.keygen_playerAPI(
-                c_int(n),
-                c_int(t),
-                c_int(party_id),
-                tid_array,      # 直接传递数组（自动转换为指针）
-                ip_array,       # 同上
-                port_array      # 同上
-            )
-            
-            return render_template('result.html', 
-                               result=f"Player API executed with result: {result}"
-                               ,filename=f"Web_party_{party_id}_keygen_res.json"
-                               )
-        
-        except Exception as e:
-            return render_template('error.html', error=str(e))
-    
-    return render_template('keygen_player_form.html')
-
-@app.route('/keygen_ttp', methods=['GET', 'POST'])
-def keygen_ttp_api():
-    if request.method == 'POST':
-        try:
-            # 获取表单数据
-            n = int(request.form['n'])
-            t = int(request.form['t'])
-            # 处理数组型参数
-            threshold_ids = list(map(int, request.form['threshold_ids'].split(',')))
-            ips = request.form['ip'].split(',')          # 输入类似 "192.168.0.1,192.168.0.2,..."
-            ports = list(map(int, request.form['port'].split(',')))  # 输入类似 "12345,12346,..."
-
-            # 校验参数数量是否符合 C 函数要求
-            if len(threshold_ids) != t:
-                raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
-            if len(ips) != n + 1:  # 注意 C 函数循环是 i <= n，需要 n+1 个 IP
-                raise ValueError(f"需要 {n+1} 个 IP，收到 {len(ips)}")
-            if len(ports) != n + 1:
-                raise ValueError(f"需要 {n+1} 个端口，收到 {len(ports)}")
-
-            # 将 Python 数组转换为 ctypes 兼容类型
-            # (1) threshold_ids 转换为 c_int 数组
-            tid_array = (c_int * t)(*threshold_ids)
-
-            # (2). IP数组 - 确保每个IP以null结尾
-            ip_array = (c_char_p * (n + 1))()
-            for i, ip in enumerate(ips):
-                # 复制字符串并确保null结尾
-                ip_array[i] = create_string_buffer(ip.encode('utf-8')).raw
-
-            # (3) 端口转换为 c_int 数组
-            port_array = (c_int * (n + 1))(*ports)
-
-
-            # 调用 C 函数
-            result = lib.keygen_ttpAPI(
-                c_int(n),
-                c_int(t),
-                tid_array,      # 直接传递数组（自动转换为指针）
-                ip_array,       # 同上
-                port_array      # 同上
-            )
-            
-            return render_template('result.html', 
-                               result=f"TTP API executed with result: {result}",
-                               filename="--")
-        
-        except Exception as e:
-            return render_template('error.html', error=str(e))
-    
-    return render_template('keygen_ttp_form.html')
-
-
-@app.route('/sign_player', methods=['GET', 'POST'])
-def sign_player_api():
-    if request.method == 'POST':
-        try:
-            # 获取表单数据
-            n = int(request.form['n'])
-            t = int(request.form['t'])
-            party_id = int(request.form['party_id'])
-            # 处理数组型参数
-            threshold_ids = list(map(int, request.form['threshold_ids'].split(',')))
-            ips = request.form['ip'].split(',')          # 输入类似 "192.168.0.1,192.168.0.2,..."
-            ports = list(map(int, request.form['port'].split(',')))  # 输入类似 "12345,12346,..."
-
-            # 校验参数数量是否符合 C 函数要求
-            if len(threshold_ids) != t:
-                raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
-            if len(ips) != n + 1:  # 注意 C 函数循环是 i <= n，需要 n+1 个 IP
-                raise ValueError(f"需要 {n+1} 个 IP，收到 {len(ips)}")
-            if len(ports) != n + 1:
-                raise ValueError(f"需要 {n+1} 个端口，收到 {len(ports)}")
-
-            # 将 Python 数组转换为 ctypes 兼容类型
-            # (1) threshold_ids 转换为 c_int 数组
-            tid_array = (c_int * t)(*threshold_ids)
-
-            # (2). IP数组 - 确保每个IP以null结尾
-            ip_array = (c_char_p * (n + 1))()
-            for i, ip in enumerate(ips):
-                # 复制字符串并确保null结尾
-                ip_array[i] = create_string_buffer(ip.encode('utf-8')).raw
-
-            # (3) 端口转换为 c_int 数组
-            port_array = (c_int * (n + 1))(*ports)
-
-
-            # 调用 C 函数
-            result = lib.sign_playerAPI(
-                c_int(n),
-                c_int(t),
-                c_int(party_id),
-                tid_array,      # 直接传递数组（自动转换为指针）
-                ip_array,       # 同上
-                port_array      # 同上
-            )
-            
-            return render_template('result.html', 
-                               result=f"Player API executed with result: {result}"
-                               ,filename=f"Web_party_{party_id}_sign_res.json"
-                               )
-        
-        except Exception as e:
-            return render_template('error.html', error=str(e))
-    
-    return render_template('sign_player_form.html')
-
-@app.route('/sign_ttp', methods=['GET', 'POST'])
-def sign_ttp_api():
-    if request.method == 'POST':
-        try:
-            # 获取表单数据
-            n = int(request.form['n'])
-            t = int(request.form['t'])
-            # 处理数组型参数
-            threshold_ids = list(map(int, request.form['threshold_ids'].split(',')))
-            ips = request.form['ip'].split(',')          # 输入类似 "192.168.0.1,192.168.0.2,..."
-            ports = list(map(int, request.form['port'].split(',')))  # 输入类似 "12345,12346,..."
-
-            # 校验参数数量是否符合 C 函数要求
-            if len(threshold_ids) != t:
-                raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
-            if len(ips) != n + 1:  # 注意 C 函数循环是 i <= n，需要 n+1 个 IP
-                raise ValueError(f"需要 {n+1} 个 IP，收到 {len(ips)}")
-            if len(ports) != n + 1:
-                raise ValueError(f"需要 {n+1} 个端口，收到 {len(ports)}")
-
-            # 将 Python 数组转换为 ctypes 兼容类型
-            # (1) threshold_ids 转换为 c_int 数组
-            tid_array = (c_int * t)(*threshold_ids)
-
-            # (2). IP数组 - 确保每个IP以null结尾
-            ip_array = (c_char_p * (n + 1))()
-            for i, ip in enumerate(ips):
-                # 复制字符串并确保null结尾
-                ip_array[i] = create_string_buffer(ip.encode('utf-8')).raw
-
-            # (3) 端口转换为 c_int 数组
-            port_array = (c_int * (n + 1))(*ports)
-
-
-            # 调用 C 函数
-            result = lib.sign_ttpAPI(
-                c_int(n),
-                c_int(t),
-                tid_array,      # 直接传递数组（自动转换为指针）
-                ip_array,       # 同上
-                port_array      # 同上
-            )
-            
-            return render_template('result.html', 
-                               result=f"TTP API executed with result: {result}",
-                               filename=f"--")
-        
-        except Exception as e:
-            return render_template('error.html', error=str(e))
-    
-    return render_template('sign_ttp_form.html')
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/api/<mode>/<role>', methods=['POST'])
+def handle_api(mode, role):
+    try:
+        data = request.get_json()
+        
+        # 公共参数
+        n = int(data['n'])
+        t = int(data['t'])
+        ips = data['ips'].split(',')
+        ports = list(map(int, data['ports'].split(',')))
+        
+        # 验证参数
+        if len(ips) != n + 1:
+            raise ValueError(f"需要 {n+1} 个 IP，收到 {len(ips)}")
+        if len(ports) != n + 1:
+            raise ValueError(f"需要 {n+1} 个端口，收到 {len(ports)}")
+        
+        # 准备参数
+        ip_array = (c_char_p * (n + 1))()
+        for i, ip in enumerate(ips):
+            ip_array[i] = create_string_buffer(ip.encode('utf-8')).raw
+        port_array = (c_int * (n + 1))(*ports)
+        
+        # 根据模式和角色调用不同的API
+        if mode == 'keygen':
+            if role == 'ttp':
+                result = lib.keygen_ttpAPI(c_int(n), c_int(t), ip_array, port_array)
+                return jsonify({
+                    'status': 'success',
+                    'result': result,
+                    'filename': '--'
+                })
+            elif role == 'player':
+                party_id = int(data['party_id'])
+                result = lib.keygen_playerAPI(c_int(n), c_int(t), c_int(party_id), ip_array, port_array)
+                return jsonify({
+                    'status': 'success',
+                    'result': result,
+                    'filename': f'Web_party_{party_id}_keygen_res.json'
+                })
+                
+        elif mode == 'sign':
 
+            threshold_ids = list(map(int, data['threshold_ids'].split(',')))
+            if len(threshold_ids) != t:
+                raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
+            tid_array = (c_int * t)(*threshold_ids)
+
+            if role == 'ttp':
+                result = lib.sign_ttpAPI(c_int(n), c_int(t), tid_array, ip_array, port_array)
+                return jsonify({
+                    'status': 'success',
+                    'result': result,
+                    'filename': '--'
+                })
+            elif role == 'player':
+                party_id = int(data['party_id'])
+                result = lib.sign_playerAPI(c_int(n), c_int(t), c_int(party_id), tid_array, ip_array, port_array)
+                return jsonify({
+                    'status': 'success',
+                    'result': result,
+                    'filename': f'Web_party_{party_id}_sig.json'
+                })
+                
+        raise ValueError("无效的模式或角色")
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+
+@app.route('/data/<filename>')
+def download_file(filename):
+    return send_from_directory('data', filename)  # 从data目录提供文件
 
 if __name__ == '__main__':
     # 创建命令行参数解析器

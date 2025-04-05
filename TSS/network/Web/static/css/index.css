@@ -1,0 +1,241 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #333;
+}
+
+.container {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 450px;
+    text-align: center;
+    position: relative;
+}
+
+h1 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-weight: 300;
+}
+
+.button-group, .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.form-group {
+    text-align: left;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+label {
+    font-size: 14px;
+    color: #555;
+}
+
+input, textarea {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border 0.3s ease;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#keygen {
+    background-color: #2ecc71;
+}
+
+#keygen:hover {
+    background-color: #27ae60;
+}
+
+#sign {
+    background-color: #e67e22;
+}
+
+#sign:hover {
+    background-color: #d35400;
+}
+
+#verify {
+    background-color: #9b59b6;
+}
+
+#verify:hover {
+    background-color: #8e44ad;
+}
+
+#ttp {
+    background-color: #1abc9c;
+}
+
+#ttp:hover {
+    background-color: #16a085;
+}
+
+#player {
+    background-color: #f39c12;
+}
+
+#player:hover {
+    background-color: #e67e22;
+}
+
+.submit-btn {
+    background-color: #3498db;
+    margin-top: 20px;
+}
+
+.back-btn {
+    background-color: #95a5a6;
+    margin-top: 10px;
+}
+
+.back-btn:hover {
+    background-color: #7f8c8d;
+}
+
+.status {
+    margin-top: 25px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    color: #666;
+    font-size: 14px;
+    min-height: 20px;
+    transition: opacity 0.3s ease;
+}
+
+.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.hidden {
+    display: none;
+    opacity: 0;
+}
+
+#instruction {
+    transition: opacity 0.3s ease;
+}
+.result-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.result-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+}
+
+.error-message {
+    color: #d32f2f;
+    margin: 10px 0;
+}
+
+.success-message {
+    color: #2ecc71;
+    margin: 10px 0;
+}
+
+.download-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.threshold-ids-row {
+    display: flex; /* 默认显示 */
+    flex-direction: column;
+    gap: 5px;
+}
+
+.threshold-ids-row.hidden {
+    display: none; /* 隐藏时使用 */
+}
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
