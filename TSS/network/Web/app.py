@@ -1,9 +1,8 @@
-from ctypes import CDLL, Structure, c_int, c_char_p, POINTER, c_void_p, cast, create_string_buffer
+from ctypes import CDLL, Structure, c_int, c_char_p, POINTER, c_void_p, cast, create_string_buffer,c_ubyte 
+from flask import Flask, render_template, request, jsonify,send_from_directory
 import os
 import argparse
-from flask import Flask, render_template, request, jsonify,send_from_directory
-from ctypes import *
-import json
+import base64
 
 #gunicorn -w 20 -b 0.0.0.0:5000 app:app
 #sudo systemctl restart systemd-networkd
@@ -46,11 +45,19 @@ lib.sign_playerAPI.restype = c_int
 lib.sign_ttpAPI.argtypes = [
     c_int,                # n
     c_int,                # t
-    POINTER(c_int),       # tid[] 数组指针
     POINTER(c_char_p),    # ip_[] 数组指针
     POINTER(c_int),       # port_[] 数组指针
 ]
 lib.sign_ttpAPI.restype = c_int
+
+lib.verify.argtypes = [
+    c_int,                # t
+    POINTER(c_int),       # tid[] 数组指针
+    c_int,                # mlen
+    c_char_p,             # Sig
+    c_char_p,             # pk
+]
+lib.verify.restype = c_int
 
 
 @app.route('/')
@@ -65,8 +72,8 @@ def handle_api(mode, role):
         # 公共参数
         n = int(data['n'])
         t = int(data['t'])
-        ips = data['ips'].split(',')
-        ports = list(map(int, data['ports'].split(',')))
+        ips = data['ips'].split(' ')
+        ports = list(map(int, data['ports'].split(' ')))
         
         # 验证参数
         if len(ips) != n + 1:
@@ -99,20 +106,20 @@ def handle_api(mode, role):
                 })
                 
         elif mode == 'sign':
-
-            threshold_ids = list(map(int, data['threshold_ids'].split(',')))
-            if len(threshold_ids) != t:
-                raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
-            tid_array = (c_int * t)(*threshold_ids)
-
             if role == 'ttp':
-                result = lib.sign_ttpAPI(c_int(n), c_int(t), tid_array, ip_array, port_array)
+                result = lib.sign_ttpAPI(c_int(n), c_int(t), ip_array, port_array)
                 return jsonify({
                     'status': 'success',
                     'result': result,
                     'filename': '--'
                 })
             elif role == 'player':
+                
+                threshold_ids = list(map(int, data['threshold_ids'].split(' ')))
+                if len(threshold_ids) != t:
+                    raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
+                tid_array = (c_int * t)(*threshold_ids)
+
                 party_id = int(data['party_id'])
                 result = lib.sign_playerAPI(c_int(n), c_int(t), c_int(party_id), tid_array, ip_array, port_array)
                 return jsonify({
@@ -132,6 +139,64 @@ def handle_api(mode, role):
 @app.route('/data/<filename>')
 def download_file(filename):
     return send_from_directory('data', filename)  # 从data目录提供文件
+
+@app.route('/api/verify', methods=['POST'])
+def handle_verify():
+    try:
+        # 1. 获取并解析JSON数据
+        data = request.get_json()
+        if not data:
+            raise ValueError("未接收到有效JSON数据")
+        
+        # 2. 验证必需字段（根据您的实际需求调整）
+        required_fields = ['t', 'mlen', 'Sig']  # 示例字段
+        for field in required_fields:
+            if field not in data:
+                raise ValueError(f"缺少必需字段: {field}")
+
+        # 2. 提取必需参数
+        t = data.get('t')
+        tid = data.get('tid')
+        mlen = data.get('mlen')
+        sm = data.get('Sig')  # 签名消息
+        pk = data.get('pk')  # 公钥
+
+        # 3. 参数验证
+        if None in (t, tid, sm, pk, mlen):
+            missing = [k for k in ['t', 'tid', 'sm', 'pk', 'mlen'] if data.get(k) is None]
+            raise ValueError(f"Missing required fields: {', '.join(missing)}")
+        
+        # 4. 转换为C兼容类型
+        # 转换tid数组
+        tid_array = (c_int * len(tid))(*tid)
+        
+        try:
+            sm = base64.b64decode(sm)  # 解码签名
+            pk = base64.b64decode(pk)    # 解码公钥
+        except Exception as e:
+            raise ValueError(f"Base64 解码失败: {str(e)}")
+
+        # 5. 调用C函数
+        result = lib.verify(
+            c_int(t),
+            tid_array,
+            c_int(mlen),
+            sm,
+            pk,
+        )
+
+        # 6. 返回结果
+        return jsonify({
+            'message': 'Verification successful' if result == 0 else 'Verification failed',
+            'valid': result == 0
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'result': -1  # 错误代码
+        }), 400
 
 if __name__ == '__main__':
     # 创建命令行参数解析器

@@ -21,7 +21,7 @@ int json_to_keygen_ctx(SignNet_ctx* ctx, const char* json_str);
 int load_ctx_from_file(SignNet_ctx* ctx, const char* filename);
 
 int json_to_sign_ctx(SignNet_ctx* ctx, const char* json_str);
-cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes);
-int save_sig_to_file(const SignNet_ctx* ctx, const char* filename, int spx_bytes);
+cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes, int tid[]);
+int save_sig_to_file(const SignNet_ctx* ctx, const char* filename, int spx_bytes, int tid[]);
 int load_sm(unsigned char* pk, unsigned char** sm, int* smlen, int* mlen, const char* filename, int spx_bytes);
 #endif

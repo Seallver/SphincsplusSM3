@@ -38,15 +38,15 @@
             </div>
             <div class="form-row threshold-ids-row">
                 <label for="ttp-threshold-ids">Threshold IDs:</label>
-                <textarea id="ttp-threshold-ids" placeholder="请按序输入所有门限方ID，形如(1,2,...)"></textarea>
+                <textarea id="ttp-threshold-ids" placeholder="请按序输入所有门限方ID，形如(1 2 ...)"></textarea>
             </div>
             <div class="form-row">
                 <label for="ttp-ips">IPs:</label>
-                <textarea id="ttp-ips" placeholder="请依次输入IP地址，形如(127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1,...)"></textarea>
+                <textarea id="ttp-ips" placeholder="请依次输入IP地址，形如(127.0.0.1 127.0.0.1 127.0.0.1 127.0.0.1 ...)"></textarea>
             </div>
             <div class="form-row">
                 <label for="ttp-ports">Ports:</label>
-                <textarea id="ttp-ports" placeholder="请输入对应端口号，形如(10000,10001,10002,10003,...)"></textarea>
+                <textarea id="ttp-ports" placeholder="请输入对应端口号，形如(10000 10001 10002 10003 ...)"></textarea>
             </div>
             <button class="submit-btn" id="ttp-submit">提交</button>
             <button class="back-btn" id="back-to-role-from-ttp">返回</button>
@@ -69,18 +69,28 @@
             </div>
             <div class="form-row threshold-ids-row">
                 <label for="player-threshold-ids">Threshold IDs:</label>
-                <textarea id="player-threshold-ids" placeholder="请按序输入所有门限方ID，形如(1,2,...)"></textarea>
+                <textarea id="player-threshold-ids" placeholder="请按序输入所有门限方ID，形如(1 2 ...)"></textarea>
             </div>
             <div class="form-row">
                 <label for="player-ips">IPs:</label>
-                <textarea id="player-ips" placeholder="请依次输入IP地址，形如(127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1,...)"></textarea>
+                <textarea id="player-ips" placeholder="请依次输入IP地址，形如(127.0.0.1 127.0.0.1 127.0.0.1 127.0.0.1 ...)"></textarea>
             </div>
             <div class="form-row">
                 <label for="player-ports">Ports:</label>
-                <textarea id="player-ports" placeholder="请输入对应端口号，形如(10000,10001,10002,10003,...)"></textarea>
+                <textarea id="player-ports" placeholder="请输入对应端口号，形如(10000 10001 10002 10003 ...)"></textarea>
             </div>
             <button class="submit-btn" id="player-submit">提交</button>
             <button class="back-btn" id="back-to-role-from-player">返回</button>
+        </div>
+
+        <div class="form-group hidden" id="verify-form">
+            <h3>验证签名</h3>
+            <div class="form-row">
+                <label for="verify-json">选择JSON文件：</label>
+                <input type="file" id="verify-json" accept=".json">
+            </div>
+            <button class="submit-btn" id="verify-submit">提交验证</button>
+            <button class="back-btn" id="back-to-main-from-verify">返回</button>
         </div>
         
         <div class="status" id="status">
@@ -96,6 +106,14 @@
             <div id="modal-filename" class="filename-message"></div>
             <div class="modal-actions">
             </div>
+        </div>
+    </div>
+
+    <!-- 加载动画模态框 -->
+    <div class="loading-modal" id="loading-modal">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>处理中，请稍候...</p>
         </div>
     </div>
 

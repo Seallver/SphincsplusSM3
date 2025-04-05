@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     // 把keygen生成的关键数据输出(写入文件)
     snprintf(filename, sizeof(filename), "../data/party_%d_sig.json", ctx->party_id);    
-    if (save_sig_to_file(ctx, filename, SPX_BYTES)) {
+    if (save_sig_to_file(ctx, filename, SPX_BYTES, threshold)) {
         printf("Failed to save context\n");
     } else {
         printf("Results saved successfully\n");

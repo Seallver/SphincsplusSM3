@@ -9,7 +9,8 @@
 API_EXPORT int keygen_playerAPI(int n, int t, int party_id,  char* ip_[], int port_[]);
 API_EXPORT int keygen_ttpAPI(int n, int t,  char* ip_[], int port_[]);
 API_EXPORT int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[]);
-API_EXPORT int sign_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]);
+API_EXPORT int sign_ttpAPI(int n, int t, char* ip_[], int port_[]);
+API_EXPORT int verify(int t, int tid[], int mlen, unsigned char* sm, unsigned char* pk);
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -172,7 +173,7 @@ int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_
 
     // 把sign生成的关键数据输出(写入文件)
     snprintf(filename, sizeof(filename), "data/Web_party_%d_sig.json", ctx->party_id);    
-    if (save_sig_to_file(ctx, filename, spx_bytes)) {
+    if (save_sig_to_file(ctx, filename, spx_bytes, tid)) {
         printf("[P%d] Failed to save context\n", ctx->party_id);
     } else {
         printf("[P%d] Results saved successfully\n", ctx->party_id);
@@ -189,7 +190,7 @@ int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_
     return 0;
 }
 
-int sign_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]) {
+int sign_ttpAPI(int n, int t, char* ip_[], int port_[]) {
     if (n > SPX_D - 1 || n < 0) {
         printf("[P%d] n must be in [0, d)\n", 0);
         return NULL;
@@ -209,10 +210,6 @@ int sign_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]) {
     ctx->party_id = 0;
     ctx->n = n;
     ctx->t = t;
-
-    for (int i = 0; i < t; i++) {
-        threshold[i] = tid[i];
-    }
 
     for (int i = 0; i <= n; i++) {
         memcpy(ctx->ip_[i], ip_[i], strlen(ip_[i]) + 1);
@@ -235,20 +232,20 @@ int sign_ttpAPI(int n, int t, int tid[], char* ip_[], int port_[]) {
     return 0;
 }
 
-// int main(int t, int tid[], unsigned char* sm, int mlen, unsigned char* pk) {
-//     int spx_bytes = (SPX_N + SPX_FORS_BYTES + (t + 1) * SPX_WOTS_BYTES + \
-//         (t + 1) * SPX_TREE_HEIGHT * SPX_N);
+int verify(int t, int tid[], int mlen, unsigned char* sm, unsigned char* pk) {
+    int spx_bytes = (SPX_N + SPX_FORS_BYTES + (t + 1) * SPX_WOTS_BYTES + \
+        (t + 1) * SPX_TREE_HEIGHT * SPX_N);
     
-//     for (int i = 0; i < t; i++) {
-//         threshold[i] = tid[i];
-//     }
+    for (int i = 0; i < t; i++) {
+        threshold[i] = tid[i];
+    }
 
-//     //验证签名
-//     if (tss_crypto_sign_verify(sm, spx_bytes, sm + spx_bytes, mlen, pk, t)) {
-//         printf("vrfy failed\n");
-//         return -1;
-//     }
-//     printf("vrfy success!\n");
+    //验证签名
+    if (tss_crypto_sign_verify(sm, spx_bytes, sm + spx_bytes, mlen, pk, t)) {
+        printf("vrfy failed\n");
+        return -1;
+    }
+    printf("vrfy success!\n");
 
-//     return 0;
-// }
+    return 0;
+}

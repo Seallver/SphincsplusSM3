@@ -77,7 +77,7 @@ cJSON* keygen_ctx_to_json(const KeygenNet_ctx* ctx) {
 
 
 // 序列化SignNet_ctx结构体
-cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes) {
+cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes, int tid[]) {
     cJSON* json = cJSON_CreateObject();
     if (!json) return NULL;
 
@@ -96,7 +96,13 @@ cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes) {
     cJSON_AddStringToObject(json, "Sig", sig_base64);
     free(sig_base64);
 
-
+    // 序列化门限签名参与者ID
+    cJSON* tid_array = cJSON_CreateArray();
+    if (!tid_array) return NULL;
+    for (int i = 0; i < ctx->t; i++) {
+        cJSON_AddItemToArray(tid_array, cJSON_CreateNumber(tid[i]));
+    }
+    cJSON_AddItemToObject(json, "tid", tid_array);
 
     return json;
 }
@@ -124,8 +130,8 @@ int save_ctx_to_file(const KeygenNet_ctx* ctx, const char* filename) {
 }
 
 //sign结果写入JSON文件
-int save_sig_to_file(const SignNet_ctx* ctx, const char* filename, int spx_bytes) {
-    cJSON* json = sig_to_json(ctx, spx_bytes);
+int save_sig_to_file(const SignNet_ctx* ctx, const char* filename, int spx_bytes, int tid[]) {
+    cJSON* json = sig_to_json(ctx, spx_bytes, tid);
     if (!json) return -1;
 
     char* json_str = cJSON_Print(json);

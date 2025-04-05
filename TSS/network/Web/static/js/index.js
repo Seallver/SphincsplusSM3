@@ -31,7 +31,8 @@ function switchViews(hideElement, showElement, newInstruction, newStatus) {
         
         // 更新文本内容
         if (newInstruction) instructionElement.textContent = newInstruction;
-        if (newStatus) statusElement.textContent = newStatus;
+
+        if (newStatus) updateStatus(newStatus);
         
         // 显示新视图
         showElement.classList.remove('hidden');
@@ -47,13 +48,21 @@ function switchViews(hideElement, showElement, newInstruction, newStatus) {
 }
 
 // 更新状态消息的函数
-function updateStatus(message, isError = false) {
+function updateStatus(message, isError = false, isSuccess = false) {
     statusElement.style.opacity = '0';
     setTimeout(() => {
-        statusElement.textContent = message;
-        statusElement.style.backgroundColor = isError ? '#fdecea' : '#f8f9fa';
-        statusElement.style.color = isError ? '#d32f2f' : '#666';
-        statusElement.style.opacity = '1';
+        if (isSuccess) {
+            statusElement.textContent = message;
+            statusElement.style.backgroundColor = '#e9f7ef';
+            statusElement.style.color = '#28a745';
+            statusElement.style.opacity = '1';
+        }
+        else {
+            statusElement.textContent = message;
+            statusElement.style.backgroundColor = isError ? '#fdecea' : '#f8f9fa';
+            statusElement.style.color = isError ? '#d32f2f' : '#666';
+            statusElement.style.opacity = '1';
+        }
     }, 50);
 }
 
@@ -95,19 +104,20 @@ function showThresholdIds() {
     });
 }
 
-
 // Verify按钮点击事件
 document.getElementById('verify').addEventListener('click', function() {
-    updateStatus("正在验证...");
-    // 这里可以添加实际的Verify逻辑
-    setTimeout(() => {
-        updateStatus("验证成功！");
-    }, 1500);
+    switchViews(
+        mainButtons,
+        document.getElementById('verify-form'),
+        "请上传验证文件",
+        "准备验证..."
+    );
 });
 
 // TTP按钮点击事件
 document.getElementById('ttp').addEventListener('click', function() {
     currentRole = 'ttp';
+    hideThresholdIds();
     switchViews(
         roleButtons, 
         ttpForm, 
@@ -138,7 +148,16 @@ backToMainBtn.addEventListener('click', function () {
     );
 });
 
-backToRoleFromTtpBtn.addEventListener('click', function() {
+document.getElementById('back-to-main-from-verify').addEventListener('click', function() {
+    switchViews(
+        document.getElementById('verify-form'),
+        mainButtons,
+        "请选择您需要的操作",
+        "就绪"
+    );
+});
+
+backToRoleFromTtpBtn.addEventListener('click', function () {
     switchViews(
         ttpForm, 
         roleButtons, 
@@ -159,42 +178,110 @@ backToRoleFromPlayerBtn.addEventListener('click', function() {
 
 // 表单提交函数
 async function submitForm(mode, role, formData) {    
-try {
-    updateStatus(`正在${mode}...`);
-    
-    const response = await fetch(`/api/${mode}/${role}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-    });
-    
-    const data = await response.json();
-    
-    if (data.status === 'error') {
-        throw new Error(data.message);
+    showLoading(); // 显示加载动画
+    try {
+        updateStatus(`正在${mode}...`);
+        
+        const response = await fetch(`/api/${mode}/${role}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'error') {
+            throw new Error(data.message);
+        }
+        
+        // 显示结果模态框
+        showResultModal(
+            `${mode === 'keygen' ? '密钥生成' : '签名'}成功`,
+            `结果代码: ${data.result}`,
+            data.filename
+        );
+        
+        updateStatus(`${mode}完成！`, false, true);
+        
+    } catch (error) {
+        updateStatus(error.message, true);
+        showResultModal(
+            '操作失败',
+            error.message,
+            '',
+            true
+        );
+    }finally {
+        hideLoading(); // 无论成功失败都隐藏加载动画
     }
     
-    // 显示结果模态框
-    showResultModal(
-        `${mode === 'keygen' ? '密钥生成' : '签名'}成功`,
-        `结果代码: ${data.result}`,
-        data.filename
-    );
-    
-    updateStatus(`${mode}完成！`);
-    
-} catch (error) {
-    updateStatus(error.message, true);
-    showResultModal(
-        '操作失败',
-        error.message,
-        '',
-        true
-    );
 }
+
+// 验证数据提交函数
+async function submitVerifyData(jsonData) {
+    showLoading(); // 显示加载动画
+    updateStatus("正在验证数据...");
+    
+    try {
+        const response = await fetch('/api/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+
+        showResultModal(
+            '验证结果',
+            `验证完成：${result.message}`,
+            '',
+            false
+        );
+        updateStatus("验证成功！", false, true);
+    } catch (error) {
+        updateStatus(`验证失败: ${error.message}`, true);
+        showResultModal(
+            '验证错误',
+            error.message,
+            '',
+            true
+        );
+    }finally {
+        hideLoading(); // 无论成功失败都隐藏加载动画
+    }
 }
+
+// 添加验证提交事件
+document.getElementById('verify-submit').addEventListener('click', function() {
+    const fileInput = document.getElementById('verify-json');
+    if (!fileInput.files.length) {
+        updateStatus("请选择JSON文件", true);
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        try {
+            const jsonData = JSON.parse(e.target.result);
+            submitVerifyData(jsonData);
+        } catch (error) {
+            updateStatus("JSON文件格式错误", true);
+        }
+    };
+
+    reader.readAsText(file);
+});
+
 
 // 显示结果模态框
 function showResultModal(title, message, filename, isError = false) {
@@ -202,48 +289,56 @@ function showResultModal(title, message, filename, isError = false) {
     const titleElement = document.getElementById('modal-title');
     const messageElement = document.getElementById('modal-message');
     const filenameElement = document.getElementById('modal-filename');
-    const modalActions = document.querySelector('.modal-actions'); // 获取按钮容器
+    const modalActions = document.querySelector('.modal-actions');
     
     // 清空现有按钮
     modalActions.innerHTML = '';
     
     titleElement.textContent = title;
+    messageElement.textContent = message;
+    
+    // 根据操作类型决定标题颜色
+    if (title.includes('成功')) {
+        titleElement.className = 'success-message';  // 绿色标题
+    } else if (isError) {
+        titleElement.className = 'error-message';  // 红色标题
+    } else {
+        titleElement.style.color = '#2c3e50';  // 默认颜色
+    }
+
+    
     
     if (isError) {
-        messageElement.className = 'error-message';
+        messageElement.style.color = '#d32f2f';  // 红色错误提示
         filenameElement.textContent = '';
     } else {
-        messageElement.className = 'success-message';
+        messageElement.style.color = '#2ecc71';  // 绿色成功提示
         
         if (filename && filename !== '--') {
-            filenameElement.textContent = `文件名: ${filename}`;
-            
-            // 动态创建下载按钮
+            // 创建下载按钮
             const downloadBtn = document.createElement('a');
             downloadBtn.className = 'download-btn';
             downloadBtn.href = `data/${filename}`;
-            downloadBtn.textContent = `下载 ${filename}`;
+            downloadBtn.textContent = `${filename}`;
             downloadBtn.setAttribute('download', '');
             modalActions.appendChild(downloadBtn);
-        } else {
-            filenameElement.textContent = '操作完成';
         }
     }
     
-    // 始终添加关闭按钮
+    // 创建关闭按钮
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
-    closeBtn.id = 'modal-close';
     closeBtn.textContent = '关闭';
     modalActions.appendChild(closeBtn);
     
-    // 重新绑定关闭事件
+    // 绑定关闭事件
     closeBtn.addEventListener('click', function() {
         modal.classList.remove('active');
     });
     
     modal.classList.add('active');
 }
+
 // TTP表单提交
 document.getElementById('ttp-submit').addEventListener('click', function () {
     const formData = {
@@ -253,14 +348,8 @@ document.getElementById('ttp-submit').addEventListener('click', function () {
         ports: document.getElementById('ttp-ports').value
     };
     
-    // 只有在sign模式下才添加threshold_ids
-    if (currentMode === 'sign') {
-        formData.threshold_ids = document.getElementById('ttp-threshold-ids').value;
-    }
-    
     // 验证必填字段
     const requiredFields = ['n', 't', 'ips', 'ports'];
-    if (currentMode === 'sign') requiredFields.push('threshold_ids');
     
     for (const field of requiredFields) {
         if (!formData[field]) {
@@ -306,3 +395,13 @@ document.getElementById('modal-close').addEventListener('click', function() {
     document.getElementById('result-modal').classList.remove('active');
 });
 
+
+// 显示加载动画
+function showLoading() {
+    document.getElementById('loading-modal').classList.add('active');
+}
+
+// 隐藏加载动画
+function hideLoading() {
+    document.getElementById('loading-modal').classList.remove('active');
+}

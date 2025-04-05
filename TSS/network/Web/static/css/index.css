@@ -44,6 +44,10 @@ h1 {
     gap: 5px;
 }
 
+.threshold-ids-row textarea {
+    min-height: 20px; /* 保持足够的高度 */
+}
+
 label {
     font-size: 14px;
     color: #555;
@@ -201,27 +205,44 @@ button:active {
     width: 90%;
     text-align: center;
 }
-
 .error-message {
-    color: #d32f2f;
+    color: #e74c3c;  /* 红色 */
+    background-color: #ffebee;  /* 浅红色背景 */
+    padding: 10px;
+    border-radius: 5px;
     margin: 10px 0;
+    border-left: 4px solid #e74c3c;  /* 左侧红色边框 */
 }
 
 .success-message {
     color: #2ecc71;
-    margin: 10px 0;
+    background-color: #e8f5e9;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+    border-left: 4px solid #2ecc71;
+    position: relative;
+    overflow: hidden;
+    animation: 
+        breathe 3s ease infinite,
+        border-glow 2.5s ease infinite;
 }
 
-.download-btn {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 15px;
-    text-decoration: none;
+.success-message::before {
+    content: "✓";
     display: inline-block;
+    margin-right: 10px;
+    animation: checkmark 0.6s ease both;
+}
+
+@keyframes breathe {
+    0%, 100% { transform: scale(0.99); }
+    50% { transform: scale(1.01); }
+}
+
+@keyframes border-glow {
+    0%, 100% { box-shadow: 0 0 0 rgba(46, 204, 113, 0); }
+    50% { box-shadow: 0 0 12px rgba(46, 204, 113, 0.4); }
 }
 
 .threshold-ids-row {
@@ -233,9 +254,89 @@ button:active {
 .threshold-ids-row.hidden {
     display: none; /* 隐藏时使用 */
 }
+
+
+.download-btn, .close-btn {
+    width: 300px; /* 设置相同固定宽度 */
+    box-sizing: border-box; /* 确保padding包含在宽度内 */
+    text-align: center;
+}
+
+/* 保持原有样式 */
+.download-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.close-btn {
+    background-color: #95a5a6;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover .download-btn:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+}
+
 .modal-actions {
     display: flex;
-    justify-content: center;
-    gap: 15px;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
     margin-top: 20px;
+}
+
+.loading-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.loading-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.loading-content {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 300px;
+    width: 80%;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
