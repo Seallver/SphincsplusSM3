@@ -20,6 +20,7 @@ API_EXPORT int verify(int t, int tid[], int mlen, unsigned char* sm, unsigned ch
 #include "keygen_round.h"
 #include "Json.h"
 
+
 BIGNUM* prime;
 int threshold[SPX_D - 1];
 pthread_barrier_t barrier;
