@@ -11,7 +11,7 @@ pthread_barrier_t barrier;
 int threshold[SPX_D - 1];
 
 
-#define SPX_MLEN 512
+#define SPX_MLEN 256
 #define NUMBER_OF_THREADS PLAYERS + 1 //线程数目，注意需要加上TTP
 
 // 比较函数（升序排序）
