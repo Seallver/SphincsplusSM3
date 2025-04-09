@@ -13,7 +13,7 @@ INCLUDE_SUBDIRS = hash signature params utils thread crypto
 NETWORK_SUBDIRS = handler connection threadpool keygen sign round data
 INCLUDE_FLAGS  = -I$(INCLUDE_DIR) $(addprefix -I$(INCLUDE_DIR)/, $(INCLUDE_SUBDIRS)) \
       -I$(NETWORK_DIR) $(addprefix -I$(NETWORK_DIR)/, $(NETWORK_SUBDIRS)) \
-      -I/usr/local/include/cjson
+      -I/usr/include/cjson \
 
 # ================
 #  Compiler Setup

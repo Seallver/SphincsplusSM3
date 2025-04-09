@@ -117,7 +117,7 @@ document.getElementById('verify').addEventListener('click', function() {
 // TTP按钮点击事件
 document.getElementById('ttp').addEventListener('click', function() {
     currentRole = 'ttp';
-    hideThresholdIds();
+    if (currentMode == 'keygen') hideThresholdIds();
     switchViews(
         roleButtons, 
         ttpForm, 
@@ -348,9 +348,18 @@ document.getElementById('ttp-submit').addEventListener('click', function () {
         ports: document.getElementById('ttp-ports').value
     };
     
+    // 只有在sign模式下才添加threshold_ids
+    if (currentMode === 'sign') {
+        formData.mess = document.getElementById('ttp-mess').value;
+    }
+
     // 验证必填字段
     const requiredFields = ['n', 't', 'ips', 'ports'];
-    
+    if (currentMode === 'sign') {
+        requiredFields.push('mess');
+    }
+
+
     for (const field of requiredFields) {
         if (!formData[field]) {
             updateStatus(`请填写${field}字段`, true);
@@ -374,11 +383,15 @@ document.getElementById('player-submit').addEventListener('click', function() {
     // 只有在sign模式下才添加threshold_ids
     if (currentMode === 'sign') {
         formData.threshold_ids = document.getElementById('player-threshold-ids').value;
+        formData.mess = document.getElementById('player-mess').value;
     }
     
     // 验证必填字段
     const requiredFields = ['n', 't', 'ips', 'ports', 'party_id'];
-    if (currentMode === 'sign') requiredFields.push('threshold_ids');
+    if (currentMode === 'sign') {
+        requiredFields.push('threshold_ids');
+        requiredFields.push('mess');
+    }
     
     for (const field of requiredFields) {
         if (!formData[field]) {

@@ -2,9 +2,8 @@
 
 pragma solidity ^0.8.20;
 
-import {ERC721} from "../lib/openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {Ownable} from "../lib/openzeppelin/contracts/access/Ownable.sol";
-
+import {ERC721} from "openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Ownable} from "openzeppelin/contracts/access/Ownable.sol";
 
 // spxNFT 是一个简单的 ERC-721 NFT 合约
 contract spxNFT is ERC721, Ownable {

@@ -8,8 +8,8 @@
 // 函数声明
 API_EXPORT int keygen_playerAPI(int n, int t, int party_id,  char* ip_[], int port_[]);
 API_EXPORT int keygen_ttpAPI(int n, int t,  char* ip_[], int port_[]);
-API_EXPORT int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[]);
-API_EXPORT int sign_ttpAPI(int n, int t, char* ip_[], int port_[]);
+API_EXPORT int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[], unsigned char* mess, int messlen);
+API_EXPORT int sign_ttpAPI(int n, int t, char* ip_[], int port_[], unsigned char* mess, int messlen);
 API_EXPORT int verify(int t, int tid[], int mlen, unsigned char* sm, unsigned char* pk);
 
 #include <stdio.h>
@@ -121,7 +121,7 @@ int keygen_ttpAPI(int n, int t, char* ip_[], int port_[]) {
     return 0;
 }
 
-int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[]) {
+int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[], unsigned char* mess, int messlen) {
     if (n > SPX_D - 1 || n < 0) {
         printf("[P%d] n must be in [0, d)\n", party_id);
         return NULL;
@@ -148,9 +148,9 @@ int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_
         return 1;
     }
 
-    ctx->mlen = MLEN;
+    ctx->mlen = messlen;
     ctx->m = malloc(ctx->mlen);
-    memcpy(ctx->m, M, ctx->mlen);
+    memcpy(ctx->m, mess, ctx->mlen);
 
     for (int i = 0; i < t; i++) {
         threshold[i] = tid[i];
@@ -191,7 +191,7 @@ int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_
     return 0;
 }
 
-int sign_ttpAPI(int n, int t, char* ip_[], int port_[]) {
+int sign_ttpAPI(int n, int t, char* ip_[], int port_[], unsigned char* mess, int messlen) {
     if (n > SPX_D - 1 || n < 0) {
         printf("[P%d] n must be in [0, d)\n", 0);
         return NULL;
@@ -221,9 +221,9 @@ int sign_ttpAPI(int n, int t, char* ip_[], int port_[]) {
     memcpy(ctx->local_ip, ctx->ip_[0], strlen(ctx->ip_[0]));
     ctx->port = ctx->port_[0];
 
-    ctx->mlen = MLEN;
+    ctx->mlen = messlen;
     ctx->m = malloc(ctx->mlen);
-    memcpy(ctx->m, M, ctx->mlen);
+    memcpy(ctx->m, mess, ctx->mlen);
 
     //执行sign_round
     if (sign_round_ttp(ctx)) {

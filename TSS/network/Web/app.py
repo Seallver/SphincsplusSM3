@@ -39,6 +39,8 @@ lib.sign_playerAPI.argtypes = [
     POINTER(c_int),       # tid[] 数组指针
     POINTER(c_char_p),    # ip_[] 数组指针
     POINTER(c_int),       # port_[] 数组指针
+    c_char_p,             # mess 指针
+    c_int,                # mess_len
 ]
 lib.sign_playerAPI.restype = c_int
 
@@ -47,6 +49,8 @@ lib.sign_ttpAPI.argtypes = [
     c_int,                # t
     POINTER(c_char_p),    # ip_[] 数组指针
     POINTER(c_int),       # port_[] 数组指针
+    c_char_p,             # mess 指针
+    c_int,                # mess_len
 ]
 lib.sign_ttpAPI.restype = c_int
 
@@ -106,22 +110,23 @@ def handle_api(mode, role):
                 })
                 
         elif mode == 'sign':
+            mess = create_string_buffer(data['mess'].encode('utf-8')).raw
+            mess_len = len(mess)
             if role == 'ttp':
-                result = lib.sign_ttpAPI(c_int(n), c_int(t), ip_array, port_array)
+                result = lib.sign_ttpAPI(c_int(n), c_int(t), ip_array, port_array, mess, c_int(mess_len))
                 return jsonify({
                     'status': 'success',
                     'result': result,
                     'filename': '--'
                 })
             elif role == 'player':
-                
                 threshold_ids = list(map(int, data['threshold_ids'].split(' ')))
                 if len(threshold_ids) != t:
                     raise ValueError(f"threshold_ids 需要 {t} 个参数，收到 {len(threshold_ids)}")
                 tid_array = (c_int * t)(*threshold_ids)
 
                 party_id = int(data['party_id'])
-                result = lib.sign_playerAPI(c_int(n), c_int(t), c_int(party_id), tid_array, ip_array, port_array)
+                result = lib.sign_playerAPI(c_int(n), c_int(t), c_int(party_id), tid_array, ip_array, port_array, mess, c_int(mess_len))
                 return jsonify({
                     'status': 'success',
                     'result': result,

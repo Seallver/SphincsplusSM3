@@ -4,9 +4,8 @@
 pragma solidity ^0.8.20;
 // 指定 Solidity 编译器的版本。这里选择的是 0.8.20，确保合约在这一版本下编译通过。
 
-import {ERC20} from "../lib/openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20} from "openzeppelin/contracts/token/ERC20/ERC20.sol";
 // 从 OpenZeppelin 导入 ERC20 合约，提供标准的 ERC20 代币功能。
-
 
 contract spxCoin is ERC20 {
     // 声明 spxCoin 合约，继承 ERC20。
@@ -29,5 +28,4 @@ contract spxCoin is ERC20 {
         emit Mint(initialSupply);
         // 触发 Mint 事件，记录铸造的数量
     }
-
 }

@@ -10,12 +10,14 @@ contract spxMarketplaceTest is Test {
     spxCoin public coin;
     spxNFT public nft;
     spxMarketplace public marketplace;
-    
+
     address public owner;
     address public user;
     address public buyer;
 
     uint256 public constant PRICE = 100 * 10 ** 18; // NFT 价格
+
+    bytes public tssPublicKey = "This is tssPublicKey";
 
     function setUp() public {
         owner = address(this); // 合约拥有者是部署合约的地址
@@ -33,29 +35,31 @@ contract spxMarketplaceTest is Test {
 
         // 部署 spxMarketplace 合约
         marketplace = new spxMarketplace(coin, nft);
+
+        // 设置 TSS 公钥
+        marketplace.setTSSPublicKey(tssPublicKey);
     }
 
     function testBuyNFT() public {
-        // 让买家批准市场合约转账代币
-        vm.prank(buyer);
-        coin.approve(address(marketplace), PRICE);
+        bytes memory sig = "This is tssPublicKey";
 
-        // 卖家设置价格
-        vm.prank(user);
+        // 卖家设置商品价格并批准市场合约转移其 NFT
+        vm.startPrank(user);
         marketplace.setPrice(0, PRICE);
+        nft.setApprovalForAll(address(marketplace), true);
+        vm.stopPrank();
 
-        // 让卖家批准市场合约转移其 NFT
-        vm.prank(user);
-        nft.setApprovalForAll(address(marketplace), true); // 允许市场合约转移 NFT
-        
+
         uint256 initialSellerBalance = coin.balanceOf(user);
         uint256 initialBuyerBalance = coin.balanceOf(buyer);
 
-        // 买家购买 NFT
-        vm.prank(buyer);
-        marketplace.buyNFT(0);
-
-        // 检查买家是否已获得 NFT
+        // 买家批准市场合约转移代币，准备购买NFT0
+        vm.startPrank(buyer);
+        coin.approve(address(marketplace), PRICE); 
+        marketplace.buyNFT(0, sig);
+        vm.stopPrank();
+        
+        // 检查买家是否已获得 NFT0
         assertEq(nft.ownerOf(0), buyer, "Buyer should own the NFT");
 
         // 检查卖家是否收到代币

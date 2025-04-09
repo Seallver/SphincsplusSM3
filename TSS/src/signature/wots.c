@@ -106,7 +106,7 @@ void wots_pk_from_sig(unsigned char *pk,
 
     for (i = 0; i < SPX_WOTS_LEN; i++) {
         set_chain_addr(addr, i);
-        gen_chain(pk + i*SPX_N, sig + i*SPX_N,
+        gen_chain(pk + i * SPX_N, sig + i * SPX_N,
                   lengths[i], SPX_WOTS_W - 1 - lengths[i], ctx, addr);
     }
 }
