@@ -63,7 +63,7 @@ TSS_SOURCES  = $(SOURCES) \
                $(BASE_SRCDIR)/thread/logic.c \
                $(BASE_SRCDIR)/crypto/SSS.c
 
-TSS_HEADERS  = $(HEADERS) include/TSS_api.h
+TSS_HEADERS  = $(HEADERS)
 
 # ================
 #  Network Components

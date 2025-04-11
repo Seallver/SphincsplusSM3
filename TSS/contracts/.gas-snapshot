@@ -1,4 +1,0 @@
-spxCoinTest:testRevertIfUserBurn() (gas: 76203)
-spxCoinTest:testRevertIfUserMint() (gas: 18902)
-spxCoinTest:testSuccessIfOwnerBurn() (gas: 73097)
-spxCoinTest:testSuccessIfOwnerMint() (gas: 64114)
