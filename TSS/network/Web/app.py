@@ -4,9 +4,13 @@ import os
 import argparse
 import base64
 
+#开启前端服务
 #gunicorn -w 20 -b 0.0.0.0:5000 app:app
-#sudo systemctl restart systemd-networkd
+# or
 #python3 app.py --port 5000 --debug
+#重启网络服务
+#sudo systemctl restart systemd-networkd
+
 
 app = Flask(__name__)
 

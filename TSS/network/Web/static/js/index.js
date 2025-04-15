@@ -293,6 +293,13 @@ function showResultModal(title, message, filename, isError = false) {
     
     // 清空现有按钮
     modalActions.innerHTML = '';
+
+    // 重置所有样式
+    titleElement.className = '';
+    titleElement.style.color = '';
+    messageElement.style.color = '';
+    messageElement.className = '';
+    filenameElement.textContent = '';
     
     titleElement.textContent = title;
     messageElement.textContent = message;
