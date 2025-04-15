@@ -27,8 +27,15 @@
 - **编译器**：GCC
 - **构建工具**：Make
 - **序列化工具**: CJson
+- **密码学库**: openssl
 - **Web框架**: Flask
 - **HTTP 服务器**: Gunicorn (可选)
+
+安装依赖（参考）
+```bash
+sudo apt-get update && sudo apt-get install -y build-essential gunicorn libcjson-dev openssl libssl-dev && pip install flask 
+```
+
 
 ## ref方案构建与运行
 
@@ -127,20 +134,15 @@ make api
 cd SphincsplusSM3/TSS/network/Web
 ```
 
- 启用gunicorn服务器
+启用gunicorn服务器
 ```bash
 gunicorn -w 20 -b 0.0.0.0:5000 app:app
 ```
-
-若没安装gunicorn服务器可采用
-```bash
-sudo apt install gunicorn
-```
-安装，或者通过
+或者直接开启服务
 ```bash
 python3 app.py --port 5000
 ```
-直接开启服务
+
 
 ### 3. 访问5000端口
 在浏览器里访问本地5000端口[localhost:5000](https://localhost:5000)打开前端（端口在开启HTTP服务时可自行选择）
