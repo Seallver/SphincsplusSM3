@@ -1,4 +1,5 @@
 #include "sign_handler.h"
+#include "params.h"
 
 static int send_bignum(int sock, const BIGNUM *num) {
     if (!num) return -1;
@@ -13,7 +14,7 @@ static int send_bignum(int sock, const BIGNUM *num) {
     BN_bn2bin(num, data);
     int total_sent = 0;
     while (total_sent < len) {
-        int sent = send(sock, data + total_sent, len - total_sent, 0);
+        int sent = send(sock, data +total_sent,len-total_sent, 0);
         if (sent <= 0) {
             perror("send failed");
             SAFE_FREE(data);
@@ -259,9 +260,18 @@ int bc_top_sig(SignNet_ctx* ctx, int sock, int srv_id) {
 }
 
 int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
+    int index;
+    for (int i = 0;i < ctx->t;i++)
+        if (threshold[i] == ctx->party_id)
+          index = i;
+    
     //先发送自己的签名份额
-    int len = SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
-    int sent = send(sock, ctx->sig_shard, len, 0);
+    int sig_len =
+        index == ctx->t - 1
+            ? SPX_WOTS_LAST * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N)
+            : SPX_WOTS_AVG * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+
+    int sent = send(sock, ctx->sig_shard, sig_len, 0);
     if (sent <= 0) {
         perror("send failed");
         return -1;
@@ -274,22 +284,25 @@ int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
         return -1;
     }
 
-    len = recv(sock, buf, BUFFER_SIZE - 1, 0);
+    int len = recv(sock, buf, BUFFER_SIZE - 1, 0);
     if (len == 0) {
         perror("recv data failed");
         SAFE_FREE(buf);
         return -1;
     }
-    int index;
+
     for (int i = 0;i < ctx->t;i++)
         if (threshold[i] == srv_id)
-            index = i;
-    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
+          index = i;
+
+    ctx->sm +=
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
     memcpy(ctx->sm, buf, len);
-    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
-    ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    ctx->sm -=
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
 
-
+    ctx->smlen += len;
+    
     close(sock);
     SAFE_FREE(buf);
     return 0;
@@ -311,19 +324,34 @@ int listen_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
     int index;
     for (int i = 0;i < ctx->t;i++)
         if (threshold[i] == srv_id)
-            index = i;
-    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
+          index = i;
+
+    ctx->sm +=
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
     memcpy(ctx->sm, buf, len);
-    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index;
-    ctx->smlen += SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
+    ctx->sm -=
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
+    
+    ctx->smlen += len;
     
     //发送自己的签名份额
     len = SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N;
-    int sent = send(sock, ctx->sig_shard, len, 0);
+    for (int i = 0;i < ctx->t;i++){
+      if (threshold[i] == ctx->party_id)
+      index = i;
+    }
+
+    int sig_len =
+        index == ctx->t - 1
+            ? (SPX_WOTS_LAST * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N))
+            : SPX_WOTS_AVG * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+    
+    int sent = send(sock, ctx->sig_shard, sig_len, 0);
     if (sent <= 0) {
         perror("send failed");
         return -1;
     }
+
 
     SAFE_FREE(buf);
     return 0;
@@ -343,15 +371,9 @@ int final_sig(SignNet_ctx* ctx, int sock, int srv_id) {
         return -1;
     }
 
-    // printf("sig_shard:\n");
-    // for(int i = 0; i < len; i++) {
-    //     printf("%02x", buf[i]);
-    // }
-    // printf("\n");
-
-    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (ctx->t);
+    ctx->sm += (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (SPX_D - 1);
     memcpy(ctx->sm, buf, len);
-    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (ctx->t);
+    ctx->sm -= (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * (SPX_D - 1);
 
     close(sock);
     SAFE_FREE(buf);

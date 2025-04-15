@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "net_settings.h"
+#include "params.h"
 #include "sign_round.h"
 #include "Json.h"
 
@@ -62,6 +63,10 @@ int main(int argc, char* argv[]) {
     }
 
     ctx->sm -= ctx->smlen;
+    printf("sm size: %u\n", ctx->smlen);
+    printf("size: %u\n", SPX_BYTES);
+    printf("message size: %u\n", (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N));
+
     memmove(ctx->sm + SPX_BYTES, ctx->m, ctx->mlen);
 
     // 把keygen生成的关键数据输出(写入文件)
@@ -72,7 +77,7 @@ int main(int argc, char* argv[]) {
         printf("Results saved successfully\n");
     }
     
-    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk, ctx->t)) {
+    if (tss_crypto_sign_verify(ctx->sm, SPX_BYTES, ctx->sm + SPX_BYTES, ctx->mlen, ctx->pk)) {
         printf("vrfy failed\n");
         return -1;
     }

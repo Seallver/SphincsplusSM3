@@ -39,7 +39,6 @@ void keygen_player_recv_shares(thread_ctx* thread_ctx, BN_CTX* BNctx) {
         if (!BN_bin2bn(data, data_len, share_shards[i])) {
             fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
             BN_free(data); // 释放 BIGNUM
-            return NULL;
         }
     }
     aggregate_shares(thread_ctx->sss_ctx->share, share_shards, BNctx, PLAYERS);
@@ -69,7 +68,6 @@ void keygen_randome_agreement(thread_ctx* thread_ctx, BN_CTX* BNctx) {
         if (!BN_bin2bn(data, data_len, rji)) {
             fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
             BN_free(data); // 释放 BIGNUM
-            return NULL;
         }
         BN_mod_add(thread_ctx->sss_ctx->random_list[from], thread_ctx->sss_ctx->random_list[from], rji, prime, BNctx);
     }
@@ -108,7 +106,6 @@ void keygen_ttp_recv_shards(thread_ctx* thread_ctx, BIGNUM* sk) {
         if (!BN_bin2bn(data, data_len, shards[i])) {
             fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
             BN_free(data); // 释放 BIGNUM
-            return NULL;
         }
     }
     recover_secret(sk, shards, PLAYERS);
@@ -147,7 +144,6 @@ void ttp_recv_lagrange_shards(thread_ctx* thread_ctx, BIGNUM* sk) {
         if (!BN_bin2bn(data, data_len, shards[i])) {
             fprintf(stderr, "Error: Failed to deserialize BIGNUM\n");
             BN_free(data); // 释放 BIGNUM
-            return NULL;
         }
     }
     recover_secret(sk, shards, THRESHOLD);
@@ -178,16 +174,17 @@ void presign_player_recv_seed(thread_ctx* ctx) {
     memcpy(ctx->sk, data, data_len);
 }
 
-void sign_bc_sig_shards(thread_ctx* ctx, const unsigned char* sig_shards) {
-    Send_Msg(ctx->public_channel_list, ctx->tid, -1, sig_shards, SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);    
+void sign_bc_sig_shards(thread_ctx* ctx, const unsigned char* sig_shards , int len) {
+    Send_Msg(ctx->public_channel_list, ctx->tid, -1, sig_shards, len);    
 }
 
-void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards) {
+void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards, int *datalen) {
     Msg* msg = (Msg*)malloc(sizeof(Msg));
     Recv_Msg(ctx->self_channel, msg);
     unsigned char* data = msg->data;
     size_t data_len = msg->data_len;
     memcpy(sig_shards, data, data_len);
+    *datalen = data_len;
 }
 
 void sign_p2p_root(thread_ctx* ctx, int to) {

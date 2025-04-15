@@ -54,7 +54,7 @@ int tss_crypto_sign_keypair(unsigned char *pk, unsigned char *sk, const unsigned
  * Verifies a detached signature and message under a given public key.
  */
 int tss_crypto_sign_verify(const uint8_t *sig, size_t siglen,
-                       const uint8_t *m, size_t mlen, const uint8_t *pk, int t);
+                       const uint8_t *m, size_t mlen, const uint8_t *pk);
 
 
 //用于预签名阶段TTP生成R
@@ -71,14 +71,14 @@ int tss_sign_FORS(unsigned char* sk, unsigned char* pk, uint32_t* wots_addr,
 
 //签名阶段参与方生成WOTS签名
 int tss_sign_WOTS(unsigned char* sk, unsigned char* pk, unsigned char* sig, unsigned char* root,
-    uint32_t *wots_addr, uint32_t *tree_addr, uint32_t idx_leaf);
+    uint32_t *wots_addr, uint32_t *tree_addr, uint64_t tree, uint32_t idx_leaf, unsigned int cycles,int level);
 
 //最后一层WOTS签名交由TTP来完成
 int tss_sign_WOTS_ttp(unsigned char* pk, unsigned char* root, uint32_t* wots_addr, uint32_t* tree_addr,
     uint32_t idx_leaf, unsigned char* sig, const unsigned char* sk);
 
 //生成addr
-int tss_gen_addr(int id, uint64_t* tree, uint32_t* idx_leaf, uint32_t* wots_addr, uint32_t* tree_addr);
+int tss_gen_addr(int idx, uint64_t* tree, uint32_t* idx_leaf, uint32_t* wots_addr, uint32_t* tree_addr);
 
 //生成TTP的addr
 int tss_gen_ttp_addr(unsigned char* pk, unsigned char* mhash, unsigned char* m, unsigned long long mlen,

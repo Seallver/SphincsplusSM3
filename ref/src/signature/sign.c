@@ -117,6 +117,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     initialize_hash_function(&ctx);
 
     set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
+    
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
 
     /* Optionally, signing can be made non-deterministic using optrand.

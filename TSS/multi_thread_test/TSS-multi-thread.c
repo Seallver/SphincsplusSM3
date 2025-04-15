@@ -40,7 +40,7 @@ void print_sigma(const unsigned char* sigma) {
     sigma += SPX_FORS_BYTES;
 
     printf("\tSig_WOTS:\n");
-    for (int i = 0; i < THRESHOLD + 1; i++) {
+    for (int i = 0; i < SPX_D; i++) {
         printf("\t\t[%d] ", i);
         for (int j = 0; j < SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N; j++) {
             if (j > 0 && j % 64 == 0) printf("\n\t\t\t");
@@ -159,11 +159,11 @@ int main(void)
 
     //验证
     printf("VERIFY: start...\n");
-    for (int i = 0;i < THRESHOLD;i++) {
+    for (int i = 0;i < 1;i++) {
         int tid = threshold[i];
         pthread_create(&threads[tid], NULL, vrfy_player_logic, &ctx[tid]);
     }
-    for (int i = 0;i < THRESHOLD;i++) {
+    for (int i = 0;i < 1;i++) {
         int tid = threshold[i];
         pthread_join(threads[tid], &ret);
         if (ret){

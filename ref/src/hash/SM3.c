@@ -177,8 +177,6 @@ void crypto_hashblocks_sm3(uint8_t* statebytes,
     store_bigendian_32(statebytes + 20, state[5]);
     store_bigendian_32(statebytes + 24, state[6]);
     store_bigendian_32(statebytes + 28, state[7]);
-
-    return inlen;
 }
 
 void sm3_inc_init(uint8_t* state) {

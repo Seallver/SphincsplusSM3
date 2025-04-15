@@ -167,8 +167,8 @@ int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_
     }
 
     ctx->sm -= ctx->smlen;
-    int spx_bytes = (SPX_N + SPX_FORS_BYTES + (t + 1) * SPX_WOTS_BYTES + \
-        (t + 1) * SPX_TREE_HEIGHT * SPX_N);
+    int spx_bytes = (SPX_N + SPX_FORS_BYTES + SPX_D * SPX_WOTS_BYTES + \
+        SPX_D * SPX_TREE_HEIGHT * SPX_N);
 
     memmove(ctx->sm + spx_bytes, ctx->m, ctx->mlen);
 
@@ -181,7 +181,7 @@ int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_
     }
 
     //验证签名
-    if (tss_crypto_sign_verify(ctx->sm, spx_bytes, ctx->sm + spx_bytes, ctx->mlen, ctx->pk, ctx->t)) {
+    if (tss_crypto_sign_verify(ctx->sm, spx_bytes, ctx->sm + spx_bytes, ctx->mlen, ctx->pk)) {
         printf("[P%d] vrfy failed\n", ctx->party_id);
         return -1;
     }
@@ -234,15 +234,15 @@ int sign_ttpAPI(int n, int t, char* ip_[], int port_[], unsigned char* mess, int
 }
 
 int verify(int t, int tid[], int mlen, unsigned char* sm, unsigned char* pk) {
-    int spx_bytes = (SPX_N + SPX_FORS_BYTES + (t + 1) * SPX_WOTS_BYTES + \
-        (t + 1) * SPX_TREE_HEIGHT * SPX_N);
+    int spx_bytes = (SPX_N + SPX_FORS_BYTES + SPX_D * SPX_WOTS_BYTES + \
+        SPX_D * SPX_TREE_HEIGHT * SPX_N);
     
     for (int i = 0; i < t; i++) {
         threshold[i] = tid[i];
     }
 
     //验证签名
-    if (tss_crypto_sign_verify(sm, spx_bytes, sm + spx_bytes, mlen, pk, t)) {
+    if (tss_crypto_sign_verify(sm, spx_bytes, sm + spx_bytes, mlen, pk)) {
         printf("vrfy failed\n");
         return -1;
     }

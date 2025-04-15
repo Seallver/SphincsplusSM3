@@ -165,7 +165,7 @@ void sign_create_connection_p2p(char* dst_ip, int dst_port, SignNet_ctx* ctx, in
         }
     }
 
-    send_connection_id(sockfd, ctx->party_id);
+    send_connection_id(sockfd,ctx->party_id);
 
     int dst_id = receive_connection_id(sockfd);
 

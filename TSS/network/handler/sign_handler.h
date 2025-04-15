@@ -5,7 +5,7 @@
 
 #define SAFE_FREE(p) do { free(p); (p) = NULL; } while (0)
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 10240
 
 static int send_bignum(int sock, const BIGNUM* num);
 

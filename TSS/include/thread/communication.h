@@ -40,10 +40,10 @@ void presign_player_recv_R(thread_ctx* thread_ctx);
 void presign_player_recv_seed(thread_ctx* ctx);
 
 //门限方广播签名份额
-void sign_bc_sig_shards(thread_ctx*ctx, const unsigned char *sig_shards);
+void sign_bc_sig_shards(thread_ctx*ctx, const unsigned char *sig_shards, int len);
 
 //门限方接收签名份额
-void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards);
+void sign_recv_sig_shards(thread_ctx* ctx, unsigned char* sig_shards, int *datalen);
 
 //门限方向下一个门限层发送root
 void sign_p2p_root(thread_ctx* ctx, int to);

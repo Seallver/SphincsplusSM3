@@ -235,7 +235,7 @@ async function submitVerifyData(jsonData) {
 
         const result = await response.json();
         
-        if (result.status === 'error') {
+        if (result.valid === false) {
             throw new Error(result.message);
         }
 
