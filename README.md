@@ -78,7 +78,7 @@ cat net_settings.h
 ```
 ### 4. 运行keygen
 ```bash
-cd SphincsplusSM3/TSS/keygen
+cd SphincsplusSM3/TSS/network/keygen
 ```
 #### TTP
 ```bash
@@ -91,7 +91,7 @@ cd SphincsplusSM3/TSS/keygen
 
 ### 5. 运行sign
 ```bash
-cd SphincsplusSM3/TSS/sign
+cd SphincsplusSM3/TSS/network/sign
 ```
 #### TTP
 ```bash
@@ -108,5 +108,34 @@ cd SphincsplusSM3/TSS/verify
 ./verify <filename>
 ```
 
+## 开启前端UI
 
+### 1. 编译前端接口
+```bash
+cd SphincsplusSM3/TSS
+make api
+```
 
+### 2. 开启HTTP服务 
+进入工作目录
+```bash
+cd SphincsplusSM3/TSS/network/Web
+```
+
+ 启用gunicorn服务器
+```bash
+gunicorn -w 20 -b 0.0.0.0:5000 app:app
+```
+
+若没安装gunicorn服务器可采用
+```bash
+sudo apt install gunicorn
+```
+安装，或者通过
+```bash
+python3 app.py --port 5000
+```
+直接开启服务
+
+### 3. 访问5000端口
+在浏览器里访问本地5000端口localhost:5000打开前端（端口在开启HTTP服务时可自行选择）
