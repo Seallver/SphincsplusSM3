@@ -80,11 +80,11 @@ cat net_settings.h
 ```bash
 cd SphincsplusSM3/TSS/network/keygen
 ```
-#### TTP
+TTP
 ```bash
 ./TTP
 ```
-#### 参与方
+参与方
 ```bash
 ./client <party_id>
 ```
@@ -93,11 +93,11 @@ cd SphincsplusSM3/TSS/network/keygen
 ```bash
 cd SphincsplusSM3/TSS/network/sign
 ```
-#### TTP
+TTP
 ```bash
 ./TTP
 ```
-#### 门限参与方
+门限参与方
 ```bash
 ./client <party_id>
 ```
