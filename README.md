@@ -1,7 +1,7 @@
 # SM3实例化的SPHINCS+门限签名方案
 
 ## 项目简介
-本项目是基于后量子密码标准SPHINCS+的门限签名系统实现，创新性地结合了**多线程模拟测试框架**和**实际网络通信实现**的双重签名-验证架构。
+本项目是基于后量子密码标准SPHINCS+的门限签名系统实现，分别用**多线程模拟测试框架**和**实际网络通信实现**实现了分布式密钥生成-签名-验证架构，最后基于网络通信模型给出了**前端UI**降低使用门槛
 
 ## 项目特点
 - **基于 SM3**：使用国密算法 SM3 作为底层哈希实例化 SPHINCS+
@@ -27,8 +27,15 @@
 - **编译器**：GCC
 - **构建工具**：Make
 - **序列化工具**: CJson
+- **密码学库**: openssl
 - **Web框架**: Flask
 - **HTTP 服务器**: Gunicorn (可选)
+
+安装依赖（参考）
+```bash
+sudo apt-get update && sudo apt-get install -y build-essential gunicorn libcjson-dev openssl libssl-dev && pip install flask 
+```
+
 
 ## ref方案构建与运行
 
@@ -78,26 +85,26 @@ cat net_settings.h
 ```
 ### 4. 运行keygen
 ```bash
-cd SphincsplusSM3/TSS/keygen
+cd SphincsplusSM3/TSS/network/keygen
 ```
-#### TTP
+TTP
 ```bash
 ./TTP
 ```
-#### 参与方
+参与方
 ```bash
 ./client <party_id>
 ```
 
 ### 5. 运行sign
 ```bash
-cd SphincsplusSM3/TSS/sign
+cd SphincsplusSM3/TSS/network/sign
 ```
-#### TTP
+TTP
 ```bash
 ./TTP
 ```
-#### 门限参与方
+门限参与方
 ```bash
 ./client <party_id>
 ```
@@ -108,5 +115,38 @@ cd SphincsplusSM3/TSS/verify
 ./verify <filename>
 ```
 
+### 4. 注意事项
+- 若希望更换不同的SPX参数模型需要在Makefile中更改，然后重新编译
+- 本环境主要用来测试，参与方的IP、port，以及待签名的消息均需要提前在net_settings.h中设置
+- 若希望更灵活地调整以上信息，可使用前端UI
 
+## 开启前端UI
+
+### 1. 编译前端接口
+```bash
+cd SphincsplusSM3/TSS
+make api
+```
+
+### 2. 开启HTTP服务 
+进入工作目录
+```bash
+cd SphincsplusSM3/TSS/network/Web
+```
+
+启用gunicorn服务器
+```bash
+gunicorn -w 20 -b 0.0.0.0:5000 app:app
+```
+或者直接开启服务
+```bash
+python3 app.py --port 5000
+```
+
+
+### 3. 访问5000端口
+在浏览器里访问本地5000端口[localhost:5000](https://localhost:5000)打开前端（端口在开启HTTP服务时可自行选择）
+
+### 4. 注意事项
+- 若希望更换不同的SPX参数模型需要在Makefile中更改，然后重新编译
 
