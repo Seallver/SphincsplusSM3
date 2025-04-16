@@ -1,7 +1,7 @@
 # ======================
 #  Build Configuration
 # ======================
-PARAMS  = sphincs-SM3-256s
+PARAMS  = sphincs-SM3-128f
 THASH   = simple
 
 # ================

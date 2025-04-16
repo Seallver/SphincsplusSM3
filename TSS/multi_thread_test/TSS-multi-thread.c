@@ -20,7 +20,7 @@ int compare_asc(const void *a, const void *b) {
 }
 
 //打印签名内容
-void print_sigma(const unsigned char* sigma) {
+void print_sigma(const unsigned char *sigma) {
     printf("SIGMA:\n");
     printf("{\n");
     printf("\tR:\t");
@@ -52,6 +52,7 @@ void print_sigma(const unsigned char* sigma) {
     }
     printf("\n");
     printf("}\n");
+    printf("SIGMA bytes: %d\n", SPX_BYTES);
     printf("SIGMA size: %.2f KB\n", SPX_BYTES / 1024.0);
     
 }
