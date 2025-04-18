@@ -65,10 +65,9 @@ int main(int argc, char* argv[]) {
     init_params();
 
     unsigned char* sm = NULL;
-    int smlen;
     int mlen;
     unsigned char pk[SPX_PK_BYTES];
-    if (load_sm(pk, &sm, &smlen, &mlen, argv[1], SPX_BYTES)) {
+    if (load_sm(pk, &sm, &mlen, argv[1], SPX_BYTES)) {
         printf("Failed to load sm\n");
         return -1;
     }

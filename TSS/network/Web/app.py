@@ -59,8 +59,6 @@ lib.sign_ttpAPI.argtypes = [
 lib.sign_ttpAPI.restype = c_int
 
 lib.verify.argtypes = [
-    c_int,                # t
-    POINTER(c_int),       # tid[] 数组指针
     c_int,                # mlen
     c_char_p,             # Sig
     c_char_p,             # pk
@@ -156,28 +154,17 @@ def handle_verify():
         data = request.get_json()
         if not data:
             raise ValueError("未接收到有效JSON数据")
-        
-        # 2. 验证必需字段（根据您的实际需求调整）
-        required_fields = ['t', 'mlen', 'Sig']  # 示例字段
-        for field in required_fields:
-            if field not in data:
-                raise ValueError(f"缺少必需字段: {field}")
 
         # 2. 提取必需参数
-        t = data.get('t')
-        tid = data.get('tid')
         mlen = data.get('mlen')
         sm = data.get('Sig')  # 签名消息
         pk = data.get('pk')  # 公钥
 
         # 3. 参数验证
-        if None in (t, tid, sm, pk, mlen):
-            missing = [k for k in ['t', 'tid', 'sm', 'pk', 'mlen'] if data.get(k) is None]
+        if None in (sm, pk, mlen):
+            missing = [k for k in ['sm', 'pk', 'mlen'] if data.get(k) is None]
             raise ValueError(f"Missing required fields: {', '.join(missing)}")
         
-        # 4. 转换为C兼容类型
-        # 转换tid数组
-        tid_array = (c_int * len(tid))(*tid)
         
         try:
             sm = base64.b64decode(sm)  # 解码签名
@@ -187,8 +174,6 @@ def handle_verify():
 
         # 5. 调用C函数
         result = lib.verify(
-            c_int(t),
-            tid_array,
             c_int(mlen),
             sm,
             pk,

@@ -81,10 +81,7 @@ cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes, int tid[]) {
     cJSON* json = cJSON_CreateObject();
     if (!json) return NULL;
 
-    cJSON_AddNumberToObject(json, "t", ctx->t);
-
     cJSON_AddNumberToObject(json, "mlen", ctx->mlen);
-    cJSON_AddNumberToObject(json, "smlen", ctx->smlen);
 
     // 序列化公钥（Base64编码）
     char* pk_base64 = base64_encode(ctx->pk, SPX_PK_BYTES);
@@ -95,14 +92,6 @@ cJSON* sig_to_json(const SignNet_ctx* ctx, int spx_bytes, int tid[]) {
     char* sig_base64 = base64_encode(ctx->sm, spx_bytes + ctx->mlen);
     cJSON_AddStringToObject(json, "Sig", sig_base64);
     free(sig_base64);
-
-    // 序列化门限签名参与者ID
-    cJSON* tid_array = cJSON_CreateArray();
-    if (!tid_array) return NULL;
-    for (int i = 0; i < ctx->t; i++) {
-        cJSON_AddItemToArray(tid_array, cJSON_CreateNumber(tid[i]));
-    }
-    cJSON_AddItemToObject(json, "tid", tid_array);
 
     return json;
 }
@@ -228,7 +217,7 @@ int load_ctx_from_file(SignNet_ctx* ctx, const char* filename) {
 }
 
 // 从JSON解析出sm
-int load_sm(unsigned char* pk, unsigned char** sm, int* smlen, int* mlen, const char* filename, int spx_bytes) {
+int load_sm(unsigned char* pk, unsigned char** sm, int* mlen, const char* filename, int spx_bytes) {
     FILE* fp = fopen(filename, "r");
     if (!fp) return -1;
 
@@ -247,11 +236,6 @@ int load_sm(unsigned char* pk, unsigned char** sm, int* smlen, int* mlen, const 
 
     cJSON* item = cJSON_GetObjectItem(json, "mlen");
     if (item) *mlen = item->valueint;
-
-
-    item = cJSON_GetObjectItem(json, "smlen");
-    if (item) *smlen = item->valueint;
-
 
 
     item = cJSON_GetObjectItem(json, "Sig");

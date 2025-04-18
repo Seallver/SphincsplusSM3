@@ -10,7 +10,7 @@ API_EXPORT int keygen_playerAPI(int n, int t, int party_id,  char* ip_[], int po
 API_EXPORT int keygen_ttpAPI(int n, int t,  char* ip_[], int port_[]);
 API_EXPORT int sign_playerAPI(int n, int t, int party_id, int tid[], char* ip_[], int port_[], unsigned char* mess, int messlen);
 API_EXPORT int sign_ttpAPI(int n, int t, char* ip_[], int port_[], unsigned char* mess, int messlen);
-API_EXPORT int verify(int t, int tid[], int mlen, unsigned char* sm, unsigned char* pk);
+API_EXPORT int verify(int mlen, unsigned char* sm, unsigned char* pk);
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -233,13 +233,9 @@ int sign_ttpAPI(int n, int t, char* ip_[], int port_[], unsigned char* mess, int
     return 0;
 }
 
-int verify(int t, int tid[], int mlen, unsigned char* sm, unsigned char* pk) {
+int verify(int mlen, unsigned char* sm, unsigned char* pk) {
     int spx_bytes = (SPX_N + SPX_FORS_BYTES + SPX_D * SPX_WOTS_BYTES + \
         SPX_D * SPX_TREE_HEIGHT * SPX_N);
-    
-    for (int i = 0; i < t; i++) {
-        threshold[i] = tid[i];
-    }
 
     //验证签名
     if (tss_crypto_sign_verify(sm, spx_bytes, sm + spx_bytes, mlen, pk)) {
