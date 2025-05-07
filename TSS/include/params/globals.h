@@ -12,6 +12,6 @@ extern BIGNUM* prime;
 extern pthread_barrier_t barrier;
 
 //乱序后前t个为门限参与方
-extern int threshold[SPX_D - 1];
+extern int threshold[SPX_D];
 
 #endif

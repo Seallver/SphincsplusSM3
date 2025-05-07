@@ -22,12 +22,12 @@ API_EXPORT int verify(int mlen, unsigned char* sm, unsigned char* pk);
 
 
 BIGNUM* prime;
-int threshold[SPX_D - 1];
+int threshold[SPX_D];
 pthread_barrier_t barrier;
 
 int keygen_playerAPI(int n, int t, int party_id, char* ip_[], int port_[]) {
-    if (n > SPX_D - 1 || n < 0) {
-        printf("[P%d] n must be in [0, d)\n", party_id);
+    if (n > SPX_D || n < 0) {
+        printf("[P%d] n must be in [0, d]\n", party_id);
         return NULL;
     }
     if (t >= n || t <= 0) {
@@ -73,13 +73,12 @@ int keygen_playerAPI(int n, int t, int party_id, char* ip_[], int port_[]) {
         printf("[P%d] Results saved successfully\n", ctx->party_id);
     }
 
-
     return 0;
 }
 
 int keygen_ttpAPI(int n, int t, char* ip_[], int port_[]) {
-    if (n > SPX_D - 1 || n < 0) {
-        printf("[P%d] n must be in [0, d)\n", 0);
+    if (n > SPX_D || n < 0) {
+        printf("[P%d] n must be in [0, d]\n", 0);
         return NULL;
     }
     if (t >= n || t <= 0) {

@@ -7,7 +7,7 @@
 #include "Json.h"
 
 BIGNUM* prime;
-int threshold[SPX_D - 1];
+int threshold[SPX_D];
 pthread_barrier_t barrier;
 
 void init_params() {

@@ -9,7 +9,7 @@
 #include xstr(params/params-PARAMS.h)
 
 /* TSS */
-#define PLAYERS 3 //参与方数
+#define PLAYERS SPX_D //参与方数
 #define THRESHOLD PLAYERS - 1 //门限数
 
 #define SPX_BYTES (SPX_N + SPX_FORS_BYTES + SPX_D * SPX_WOTS_BYTES +\

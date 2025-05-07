@@ -259,7 +259,9 @@ int bc_top_sig(SignNet_ctx* ctx, int sock, int srv_id) {
     return 0;
 }
 
-int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
+int conn_exchange_sig(SignNet_ctx *ctx, int sock, int srv_id) {
+    int spx_wots_avg = (SPX_D - 1) / ctx->t;
+    int spx_wots_last = spx_wots_avg + (SPX_D - 1) % ctx->t;
     int index;
     for (int i = 0;i < ctx->t;i++)
         if (threshold[i] == ctx->party_id)
@@ -268,8 +270,8 @@ int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
     //先发送自己的签名份额
     int sig_len =
         index == ctx->t - 1
-            ? SPX_WOTS_LAST * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N)
-            : SPX_WOTS_AVG * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+            ? spx_wots_last * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N)
+            : spx_wots_avg * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
 
     int sent = send(sock, ctx->sig_shard, sig_len, 0);
     if (sent <= 0) {
@@ -296,10 +298,10 @@ int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
           index = i;
 
     ctx->sm +=
-        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * spx_wots_avg;
     memcpy(ctx->sm, buf, len);
     ctx->sm -=
-        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * spx_wots_avg;
 
     ctx->smlen += len;
     
@@ -308,7 +310,9 @@ int conn_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
     return 0;
 }
 
-int listen_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
+int listen_exchange_sig(SignNet_ctx *ctx, int sock, int srv_id) {
+    int spx_wots_avg = (SPX_D - 1) / ctx->t;
+    int spx_wots_last = spx_wots_avg + (SPX_D - 1) % ctx->t;
     //先接收对方的签名份额并聚合
     unsigned char* buf = malloc(BUFFER_SIZE);
     if (!buf){
@@ -327,10 +331,10 @@ int listen_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
           index = i;
 
     ctx->sm +=
-        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * spx_wots_avg;
     memcpy(ctx->sm, buf, len);
     ctx->sm -=
-        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG;
+        (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * spx_wots_avg;
     
     ctx->smlen += len;
     
@@ -343,8 +347,8 @@ int listen_exchange_sig(SignNet_ctx* ctx, int sock, int srv_id) {
 
     int sig_len =
         index == ctx->t - 1
-            ? (SPX_WOTS_LAST * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N))
-            : SPX_WOTS_AVG * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
+            ? (spx_wots_last * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N))
+            : spx_wots_avg * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
     
     int sent = send(sock, ctx->sig_shard, sig_len, 0);
     if (sent <= 0) {

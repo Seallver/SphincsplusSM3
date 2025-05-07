@@ -4,13 +4,16 @@
 
 int sign_round_player(SignNet_ctx* ctx) {
     int index;
-    for (int i = 0;i < ctx->t;i++) {
+    for (int i = 0;i < ctx->t; i++) {
         if (ctx->party_id == threshold[i])
             index = i;
     }
 
+    int spx_wots_avg = (SPX_D - 1) / ctx->t;
+    int spx_wots_last = spx_wots_avg + (SPX_D - 1) % ctx->t;
+
     //初始化结构体参数
-    int wots_levels = index == ctx->t - 1 ? SPX_WOTS_LAST : SPX_WOTS_AVG;
+    int wots_levels = index == ctx-> t - 1 ? spx_wots_last : spx_wots_avg;
     ctx->sm = malloc(SPX_BYTES + ctx->mlen);
     ctx->sig_shard =
         malloc(wots_levels * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N));
@@ -41,7 +44,7 @@ int sign_round_player(SignNet_ctx* ctx) {
     ctx->sm += SPX_N + SPX_FORS_BYTES;
 
     //计算出自己WOTS签名的地址
-    tss_gen_addr(index * SPX_WOTS_AVG, &ctx->tree, &ctx->idx_leaf,
+    tss_gen_addr(index * spx_wots_avg, &ctx->tree, &ctx->idx_leaf,
                  ctx->wots_addr, ctx->tree_addr);
     
     unsigned char* sk = malloc(SPX_SK_BYTES);
@@ -52,7 +55,7 @@ int sign_round_player(SignNet_ctx* ctx) {
         //生成签名
         tss_sign_WOTS(ctx->sk, ctx->pk, ctx->sig_shard, ctx->root,
                       ctx->wots_addr, ctx->tree_addr, ctx->tree, ctx->idx_leaf,
-                      wots_levels, index * SPX_WOTS_AVG);
+                      wots_levels, index * spx_wots_avg);
         
         int sig_len = wots_levels * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
         ctx->smlen += sig_len;
@@ -70,16 +73,16 @@ int sign_round_player(SignNet_ctx* ctx) {
 
         tss_sign_WOTS(ctx->sk, ctx->pk, ctx->sig_shard, ctx->root,
                       ctx->wots_addr, ctx->tree_addr,ctx->tree,
-                      ctx->idx_leaf,wots_levels, index * SPX_WOTS_AVG);
+                      ctx->idx_leaf,wots_levels, index * spx_wots_avg);
 
         int sig_len = wots_levels * (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N);
         ctx->smlen += sig_len;
-        memcpy(ctx->sm + (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG,
+        memcpy(ctx->sm + (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * spx_wots_avg,
                ctx->sig_shard, sig_len);
                
 
-        // for (int i = 0; i < (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * SPX_WOTS_AVG; i++) {
-        //   printf("%02x", (ctx->sm + (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * SPX_WOTS_AVG)[i]);
+        // for (int i = 0; i < (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * spx_wots_avg; i++) {
+        //   printf("%02x", (ctx->sm + (SPX_WOTS_BYTES + SPX_TREE_HEIGHT * SPX_N) * index * spx_wots_avg)[i]);
         // }
         // printf("\n");
         

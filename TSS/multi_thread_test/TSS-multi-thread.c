@@ -8,7 +8,7 @@
 
 BIGNUM* prime;
 pthread_barrier_t barrier;
-int threshold[SPX_D - 1];
+int threshold[SPX_D];
 
 
 #define SPX_MLEN 256
@@ -73,7 +73,7 @@ int main(void)
     //初始化屏障
     pthread_barrier_init(&barrier, NULL, PLAYERS);
     
-    printf("Threshold Testing (n = %d, t = %d)\n", NUMBER_OF_THREADS, THRESHOLD);
+    printf("Threshold Testing (n = %d, t = %d)\n", PLAYERS, THRESHOLD);
 
 
     for (int i = 0;i < NUMBER_OF_THREADS;i++) {

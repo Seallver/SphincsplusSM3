@@ -1,7 +1,7 @@
 # ======================
 #  Build Configuration
 # ======================
-PARAMS  = sphincs-SM3-128f
+PARAMS  = sphincs-SM3-128s
 THASH   = simple
 
 # ================
@@ -147,4 +147,6 @@ print_params:
 	printf "%0.s=" $$(seq 1 $$border_len); echo ""
 
 clean:
-	rm -f $(TSS_BIN) $(NET_TARGETS) $(API_TARGET)
+	-$(RM) $(TSS_BIN)
+	-$(RM) $(NET_TARGETS)
+	-$(RM) $(API_TARGET)

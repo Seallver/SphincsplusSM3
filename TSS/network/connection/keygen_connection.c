@@ -27,7 +27,7 @@ int send_connection_id(int sock, int id) {
 void keygen_listen_local_port(KeygenNet_ctx* ctx, int conn_numbers, int (*handler_func)(KeygenNet_ctx*, int, int)) {
     //初始化线程池
     threadpool_t pool;
-    threadpool_init(&pool, conn_numbers, PLAYERS);
+    threadpool_init(&pool, conn_numbers, ctx->n);
     
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
