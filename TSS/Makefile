@@ -1,8 +1,11 @@
 # ======================
 #  Build Configuration
 # ======================
-PARAMS  = sphincs-SM3-128s
-THASH   = simple
+PARAMS_HEAD = 128s
+THASH = simple
+PRINT = PRINT
+
+PARAMS := sphincs-SM3-$(PARAMS_HEAD)
 
 # ================
 #  Include Paths
@@ -14,6 +17,7 @@ NETWORK_SUBDIRS = handler connection threadpool keygen sign round data
 INCLUDE_FLAGS  = -I$(INCLUDE_DIR) $(addprefix -I$(INCLUDE_DIR)/, $(INCLUDE_SUBDIRS)) \
       -I$(NETWORK_DIR) $(addprefix -I$(NETWORK_DIR)/, $(NETWORK_SUBDIRS)) \
       -I/usr/include/cjson \
+      -D$(PRINT) \
 
 # ================
 #  Compiler Setup
@@ -98,20 +102,20 @@ API_HEADERS = $(NET_HEADERS)
 # ================
 #  Build Targets
 # ================
-.PHONY: all clean test tss nets print_params api
+.PHONY: all clean tss nets print_params api
 
-all:  test tss api nets 
+all: tss api nets
 
 # -- TSS Target --
 TSS_BIN = multi_thread_test/TSS-multi-thread
 $(TSS_BIN): multi_thread_test/TSS-multi-thread.c $(TSS_SOURCES) $(TSS_HEADERS)
-	@$(CC) $(CFLAGS) -DTSS -o $@ $^ $(LDLIBS)
+	@$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 # -- Network Targets --
 NET_TARGETS = network/keygen/client network/keygen/TTP network/sign/client network/sign/TTP network/verify/verify
 $(NET_TARGETS): %: %.c $(NET_SOURCES) $(NET_HEADERS)
 	@echo "Compiling $@..."
-	@$(CC) $(CFLAGS) -DTSS -o $@ $< $(filter-out $<,$^) $(LDLIBS)
+	@$(CC) $(CFLAGS) -o $@ $< $(filter-out $<,$^) $(LDLIBS)
 
 # -- API Shared Library --
 API_CFLAGS = $(CFLAGS) -fPIC -fvisibility=hidden
@@ -119,12 +123,12 @@ LDFLAGS = -Wl,--exclude-libs,ALL
 
 $(API_TARGET): $(API_SOURCES) $(API_HEADERS)
 	@echo "Building TSS API shared library..."
-	@$(CC) $(API_CFLAGS) -DTSS -shared -o $@ $^ $(LDFLAGS) $(LDLIBS)
+	@$(CC) $(API_CFLAGS) -shared -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
-# ================
+# ===================
 #  Execution Helpers
-# ================
-test: print_params $(TESTS:=.exec)
+# ===================
+
 %.exec: %
 	@./$<
 
@@ -147,6 +151,6 @@ print_params:
 	printf "%0.s=" $$(seq 1 $$border_len); echo ""
 
 clean:
-	-$(RM) $(TSS_BIN)
-	-$(RM) $(NET_TARGETS)
-	-$(RM) $(API_TARGET)
+	@-$(RM) $(TSS_BIN)
+	@-$(RM) $(NET_TARGETS)
+	@-$(RM) $(API_TARGET)

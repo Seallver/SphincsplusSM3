@@ -3,7 +3,6 @@
 
 #define str(s) #s
 #define xstr(s) str(s)
-#define IS_PRINT 1 //是否打印线程状态信息,签名内容等
 
 
 #include xstr(params/params-PARAMS.h)
