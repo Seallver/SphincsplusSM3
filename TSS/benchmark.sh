@@ -29,7 +29,7 @@ for PARAMS in "${PARAMS_LIST[@]}"; do
         make clean
 
         # 使用指定参数运行 make
-        make tss PARAMS_HEAD="$PARAMS" THASH="$THASH" PRINT="NOTPRINT"
+        make tss PARAMS_HEAD="$PARAMS" THASH="$THASH" PRINT="NOTPRINT" TIMETEST="TIMETEST"
 
         # 检查是否构建成功
         if [ $? -eq 0 ]; then

@@ -4,6 +4,7 @@
 PARAMS_HEAD = 128s
 THASH = simple
 PRINT = PRINT
+TIMETEST = NOTTIMETEST
 
 PARAMS := sphincs-SM3-$(PARAMS_HEAD)
 
@@ -18,6 +19,7 @@ INCLUDE_FLAGS  = -I$(INCLUDE_DIR) $(addprefix -I$(INCLUDE_DIR)/, $(INCLUDE_SUBDI
       -I$(NETWORK_DIR) $(addprefix -I$(NETWORK_DIR)/, $(NETWORK_SUBDIRS)) \
       -I/usr/include/cjson \
       -D$(PRINT) \
+      -D$(TIMETEST) \
 
 # ================
 #  Compiler Setup

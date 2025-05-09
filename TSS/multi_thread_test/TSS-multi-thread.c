@@ -15,7 +15,13 @@ int threshold[SPX_D];
 
 
 #define SPX_MLEN 256
-#define TURNS 100
+
+#ifdef TIMETEST
+    #define TURNS 100
+#else
+    #define TURNS 1
+#endif
+
 #define NUMBER_OF_THREADS PLAYERS + 1 //线程数目，注意需要加上TTP
 
 // 比较函数（升序排序）
@@ -62,12 +68,14 @@ void print_sigma(const unsigned char *sigma) {
 }
 
 int main(void) {
+#ifdef TIMETEST
     const char *params_env = getenv("PARAMS_HEAD");
     const char *thash_env = getenv("THASH");
     if (!params_env || !thash_env) {
         fprintf(stderr, "Missing PARAMS or THASH environment variable.\n");
         return 1;
     }
+#endif
 
     double total_time = 0;
 
@@ -251,8 +259,11 @@ int main(void) {
         total_time += total_elapsed;
     }
 
+#ifdef TIMETEST
+    printf("SIGMA size: %.2f KB\n", SPX_BYTES / 1024.0);
     const char* filename = "benchmark_results.csv";
     write_to_csv(filename, params_env, thash_env, total_time / TURNS);
+#endif
 
     return 0;
 }
