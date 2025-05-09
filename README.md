@@ -69,11 +69,16 @@ make clean
 
 ## 门限签名方案构建
 
-### 1. 构建并运行多线程模拟测试
+### 1. 构建并运行多线程模拟测试和基准测试
 ```bash
 cd SphincsplusSM3/TSS
 make tss
 ```
+执行脚本自动进行所有参数集上的基准测试
+```bash
+./benchmark.sh 
+```
+
 ### 2. 编译网络通信
 ```bash
 make nets
